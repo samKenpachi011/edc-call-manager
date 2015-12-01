@@ -1,2 +1,2 @@
-# esc-call-manager
+# edc-call-manager
 Manage contacting subjects
