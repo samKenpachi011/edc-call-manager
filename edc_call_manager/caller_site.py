@@ -1,12 +1,31 @@
+import copy
+
+from django.conf import settings
+from django.utils.importlib import import_module
+from django.utils.module_loading import module_has_submodule
+
+
 class AlreadyRegistered(Exception):
     pass
 
 
 class CallerSite:
 
-    scheduling_models = {}
-    unscheduling_models = {}
-    model_callers = {}
+    def __init__(self):
+        self._registry = {}
+        self.reset_registry()
+
+    @property
+    def scheduling_models(self):
+        return self._registry['scheduling_models']
+
+    @property
+    def unscheduling_models(self):
+        return self._registry['unscheduling_models']
+
+    @property
+    def model_callers(self):
+        return self._registry['model_callers']
 
     def register(self, model, caller_class):
 
@@ -21,6 +40,12 @@ class CallerSite:
                     self.unscheduling_models[caller.unscheduling_model] = [model]
         else:
             raise AlreadyRegistered('ModelCaller is already registered for model {}.'.format(model))
+
+    def unregister(self, model):
+        del self._registry['scheduling_models'][model]
+
+    def reset_registry(self):
+        self._registry = dict(scheduling_models={}, unscheduling_models={}, model_callers={})
 
     def get_model_caller(self, model):
         try:
@@ -49,4 +74,16 @@ class CallerSite:
         except KeyError:
             pass
 
-site = CallerSite()
+    def autodiscover(self):
+        """ Autodiscover rules from a model_callers module."""
+        for app in settings.INSTALLED_APPS:
+            mod = import_module(app)
+            try:
+                before_import_registry = copy.copy(site_model_callers._registry)
+                import_module('%s.model_callers' % app)
+            except:
+                site_model_callers._registry = before_import_registry
+                if module_has_submodule(mod, 'model_callers'):
+                    raise
+
+site_model_callers = CallerSite()

@@ -21,10 +21,13 @@ https://docs.djangoproject.com/en/1.8/ref/settings/
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 import os
+
+from datetime import datetime, timedelta
 from unipath import Path
 
 # BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 BASE_DIR = Path(os.path.dirname(os.path.realpath(__file__)))
+KEY_PATH = '/Volumes/bhp066/live_keys/'
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.8/howto/deployment/checklist/
@@ -47,8 +50,13 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'django_crypto_fields',
+    # 'django_crypto_fields',
+    'edc_base',
+    'edc.core.crypto_fields',
+    'edc.device.sync',
+    'edc_consent',
     'edc_call_manager',
+    'edc_call_manager.example'
 )
 
 MIDDLEWARE_CLASSES = (
@@ -56,10 +64,10 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
+    # 'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'django.middleware.security.SecurityMiddleware',
+    # 'django.middleware.security.SecurityMiddleware',
 )
 
 ROOT_URLCONF = 'edc_call_manager.urls'
@@ -125,3 +133,10 @@ STATICFILES_FINDERS = (
 )
 
 GIT_DIR = BASE_DIR.ancestor(1)
+STUDY_OPEN_DATETIME = datetime.today() - timedelta(days=1)
+DEVICE_ID = '99'
+SERVER_DEVICE_ID_LIST = ['99']
+MIDDLEMAN_DEVICE_ID_LIST = ['98']
+FIELD_MAX_LENGTH = 'default'
+IS_SECURE_DEVICE = True
+ALLOW_MODEL_SERIALIZATION = True

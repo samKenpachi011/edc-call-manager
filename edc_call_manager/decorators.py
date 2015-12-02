@@ -11,14 +11,14 @@ def register(model, **kwargs):
     admin site will be used.
     """
     from edc_call_manager.model_caller import ModelCaller
-    from edc_call_manager.site import site
+    from edc_call_manager.caller_site import site_model_callers
 
     def _model_caller_wrapper(caller_class):
 
         if not issubclass(caller_class, ModelCaller):
             raise ValueError('Wrapped class must subclass ModelAdmin.')
 
-        site.register(model, caller_class=caller_class)
+        site_model_callers.register(model, caller_class=caller_class)
 
         return caller_class
     return _model_caller_wrapper

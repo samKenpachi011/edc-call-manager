@@ -3,13 +3,15 @@ from django.contrib import admin
 from edc_base.modeladmin.admin import BaseModelAdmin, BaseStackedInline
 
 from .models import Log, Call, LogEntry
-from django.contrib.admin.decorators import register
+# from django.contrib.admin.decorators import register
+from edc_call_manager.actions import call_participant
 
 
-@register(Call)
 class CallAdmin(BaseModelAdmin):
 
     date_hierarchy = 'created'
+
+    actions = [call_participant]
 
     fields = (
         'call_attempts',
@@ -19,14 +21,15 @@ class CallAdmin(BaseModelAdmin):
     radio_fields = {'call_status': admin.VERTICAL}
 
     list_display = (
+        'subject_identifier',
+        'scheduled',
+        'label',
         'first_name',
         'initials',
         'call_attempts',
         'call_status',
         'call_outcome',
-        'created',
         "consent_datetime",
-        'hostname_created',
         'user_created',
     )
     list_filter = (
@@ -43,12 +46,14 @@ class CallAdmin(BaseModelAdmin):
         # 'antenatal_enrollment',
     )
 
-    search_fields = ('first_name', 'initials')
+    search_fields = ('subject_identifier', 'initials')
 
 #     def formfield_for_foreignkey(self, db_field, request, **kwargs):
 #         if db_field.name == "antenatal_enrollment":
 #             kwargs["queryset"] = AntenatalEnrollment.objects.filter(id__exact=request.GET.get('antenatal_enrollment', 0))
 #         return super(CallListAdmin, self).formfield_for_foreignkey(db_field, request, **kwargs)
+
+admin.site.register(Call, CallAdmin)
 
 
 class LogEntryAdminInline(BaseStackedInline):
