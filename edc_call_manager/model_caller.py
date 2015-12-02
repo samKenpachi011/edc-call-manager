@@ -5,7 +5,7 @@ from django.utils import timezone
 from django.utils.text import slugify
 
 from edc_call_manager.models import Call, Log
-from edc_constants.constants import CLOSED, YES
+from edc_constants.constants import CLOSED
 
 
 DAILY = 'd'

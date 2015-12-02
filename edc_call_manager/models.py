@@ -1,4 +1,5 @@
 from datetime import date
+
 from django.db import models
 from django.core.validators import RegexValidator
 from django.db.models.signals import post_save
@@ -14,7 +15,6 @@ from edc_constants.constants import YES, CLOSED, OPEN, NEW, DEAD, NO, ALIVE
 
 from .choices import CONTACT_TYPE, APPT_GRADING, APPT_LOCATIONS
 from .caller_site import site_model_callers
-from django.utils import timezone
 
 
 class Call(BaseUuidModel):
@@ -220,18 +220,13 @@ class LogEntry (BaseUuidModel):
     def outcome(self):
         outcome = []
         if self.appt_date:
-            outcome.append('Appt')
-#             call_helper = CallHelper(log_entry=log_entry)
-#             call_helper.member_appointment
-#             call_helper.work_list
-#             call.member_appointment = call_helper.member_appointment
-        else:
-            if self.survival_status in [ALIVE, DEAD]:
-                outcome.append('Alive' if ALIVE else 'Deceased')
-            if self.call_again == YES:
-                outcome.append('Call again')
-            elif self.call_again == NO:
-                outcome.append('Do not call')
+            outcome.append('Appt. scheduled')
+        if self.survival_status in [ALIVE, DEAD]:
+            outcome.append('Alive' if ALIVE else 'Deceased')
+        if self.call_again == YES:
+            outcome.append('Call again')
+        elif self.call_again == NO:
+            outcome.append('Do not call')
         return outcome
 
     def update_call(self, call_attempts=None, commit=True):
