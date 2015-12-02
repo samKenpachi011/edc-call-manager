@@ -94,6 +94,7 @@ class Log(BaseUuidModel):
     call = models.ForeignKey(Call)
 
     locator_information = EncryptedTextField(
+        null=True,
         help_text='This information has been imported from the previous locator. You may update as required.')
 
     contact_notes = EncryptedTextField(
