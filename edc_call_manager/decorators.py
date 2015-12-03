@@ -1,14 +1,11 @@
 def register(model, **kwargs):
     """
-    Registers the given model(s) classes and wrapped ModelAdmin class with
-    admin site:
+    Registers the given model class and wrapped ModelCaller class with
+    site_model_callers:
 
-    @register(Author)
-    class AuthorAdmin(admin.ModelAdmin):
+    @register(Antenatal)
+    class AntenatalModelCaller(ModelCaller):
         pass
-
-    A kwarg of `site` can be passed as the admin site, otherwise the default
-    admin site will be used.
     """
     from edc_call_manager.model_caller import ModelCaller
     from edc_call_manager.caller_site import site_model_callers
@@ -16,7 +13,7 @@ def register(model, **kwargs):
     def _model_caller_wrapper(caller_class):
 
         if not issubclass(caller_class, ModelCaller):
-            raise ValueError('Wrapped class must subclass ModelAdmin.')
+            raise ValueError('Wrapped class must subclass ModelCaller.')
 
         site_model_callers.register(model, caller_class=caller_class)
 

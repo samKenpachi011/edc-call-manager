@@ -18,6 +18,12 @@ Subject = namedtuple('Person', 'subject_identifier first_name initials registrat
 
 
 class ModelCaller:
+    """A class that manages scheduling and unscheduling of calls to subjects based on the
+    creation of given models.
+
+    This class gets registered to site_model_callers and the activity of it's Scheduling and Unscheduling
+    models is inspected in signals.
+    """
 
     consent_model = None
     locator_model = None
@@ -68,6 +74,7 @@ class ModelCaller:
             registration_datetime=consent.consent_datetime)
 
     def schedule_call(self, instance, scheduled=None):
+        """Schedules a call by creating a new call instance and creates the corresponding Log instance."""
         if self.consent_model:
             subject = self.personal_details_from_consent(instance)
         else:
@@ -89,15 +96,26 @@ class ModelCaller:
         self.call_model.objects.filter(subject_identifier=instance.subject_identifier, label=self.label).exclude(
             call_status=CLOSED).update(call_status=CLOSED, auto_closed=True)
 
-    def schedule_next_call(self, call, scheduled=None):
-        if not scheduled:
-            if self.interval == DAILY:
-                scheduled = call.scheduled + relativedelta(days=+1)
-            elif self.interval == WEEKLY:
-                scheduled = call.scheduled + relativedelta(days=+1, weekday=call.scheduled.weekday())
-            elif self.interval == MONTHLY:
-                scheduled = call.scheduled + relativedelta(months=+1, weekday=call.scheduled.weekday())
-        self.schedule_call(call, scheduled)
+    def schedule_next_call(self, call, scheduled_date=None):
+        """Schedules the next call if either scheduled_date is provided or can be calculated."""
+        scheduled_date = scheduled_date or self.get_next_scheduled_date(call.call_datetime)
+        if scheduled_date:
+            self.schedule_call(call, scheduled_date)
+
+    def get_next_scheduled_date(self, reference_date):
+        """Returns the next scheduled date or None based on the interval.
+
+        TODO: This needs to be a bit more sophisticated to avoid holidays, weekends, etc."""
+        scheduled_date = None
+        if self.interval == DAILY:
+            scheduled_date = reference_date + relativedelta(days=+1)
+        elif self.interval == WEEKLY:
+            scheduled_date = reference_date + relativedelta(days=+1, weekday=reference_date.weekday())
+        elif self.interval == MONTHLY:
+            scheduled_date = reference_date + relativedelta(months=+1, weekday=reference_date.weekday())
+        else:
+            pass
+        return scheduled_date
 
     def update_call_from_log(self, call, log_entry, commit=True):
         """Updates the call_model instance with information from the log entry
@@ -121,13 +139,6 @@ class ModelCaller:
             if commit:
                 call.save()
 
-    def get_value(self, instance, attr):
-        try:
-            value = getattr(instance, attr)
-        except AttributeError:
-            value = None
-        return value
-
     def get_locator(self, instance):
         """Returns the locator instance as a formatted string."""
         locator = ''
@@ -140,3 +151,10 @@ class ModelCaller:
             except self.locator_model.DoesNotExist:
                 locator = 'locator not found.'
         return locator
+
+    def get_value(self, instance, attr):
+        try:
+            value = getattr(instance, attr)
+        except AttributeError:
+            value = None
+        return value
