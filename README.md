@@ -4,8 +4,9 @@ Configure models to manage scheduling calls to subjects.
 
 For example, contact all subjects to complete a revised consent, study closure, etc.
 
+## ModelCaller
 
-The model_caller can be configured to schedule a call when one model is created and to unschedule the call when another model is created. For example, we need to call expecting mothers weekly until they deliver. We enroll them antenatally by completing the `AnteNatalEnrollment` form (model). ModelCaller `AnteNatalModelCaller` will schedule a call. When the mother delivers we complete the `PostNatalEnrollment` form (model) and ModelCaller `AnteNatalModelCaller` cancels the currently scheduled call.
+The `ModelCaller` schedules a call when one model is created and unschedules the call when another model is created. For example, we need to call expecting mothers weekly until they deliver. We enroll them antenatally by completing the `AnteNatalEnrollment` model. Once complete, ModelCaller `AnteNatalFollowUpModelCaller` schedules a call to the mother represented by an instance in the `Call` model. When the mother delivers the `PostNatalEnrollment` model is completed and ModelCaller `AnteNatalModelCaller` cancels any currently scheduled calls managed by the `AnteNatalFollowUpModelCaller`.
 
 	class AnteNatalEnrollment(models.Model):
 	
@@ -30,7 +31,7 @@ The model_caller can be configured to schedule a call when one model is created 
 	    class Meta:
 	        app_label = 'my_app'
 
-The ModelCaller is declared as follows:
+The `AnteNatalFollowUpModelCaller` ModelCaller is declared as follows:
 
 	from edc_call_manager.model_caller import ModelCaller, WEEKLY
 	from edc_call_manager.decorators import register
@@ -38,11 +39,20 @@ The ModelCaller is declared as follows:
 	from .models import MaternalConsent, Locator
 
 	@register(AnteNatalEnrollment)
-	class AnteNatalModelCaller(ModelCaller):
+	class AnteNatalFollowUpModelCaller(ModelCaller):
 	    label = 'Antenatal-to-Postnatal'
 	    consent_model = MaternalConsent
 	    locator_model = Locator
 	    unscheduling_model = PostNatalEnrollment
 	    interval = WEEKLY
+
+In the declaration we have included the `consent_model` and the `locator_model`. ModelCaller uses these models to extract personal information on the subject for the research assistant making the follow-up calls. In almost all cases, the subject has been consented and locator information (including any restrictions on how the subject is contacted) has been captured. See also modules `edc_consent` and `edc_locator`. Personal information is always encrypted at rest in any EDC model (see modules `django_crypto_fields` and `edc.core.crypto_fields`).
+
+
+## Making a call and updating the `Log`
+
+When the research assistant is ready to make a follow-up with the patient, 
+
+
 
 
