@@ -58,6 +58,9 @@ In the declaration we have included the `consent_model` and the `locator_model`.
 * Tick a participant to call
 * Select `Call Participant` action item and click Go
 * Complete the `Log Entry` for this call attempt.
+* If call is closed, next call is scheduled by the ModelCaller
+* Complete the `ModelCaller` unscheduling form (in the example this is `PostnatalEnrollment`)
+* `ModelCaller` closes any calls still NEW or OPEN for this participant and managed by this `ModelCaller`.
 
 ## Making a call and updating the `Log`
 
@@ -65,11 +68,11 @@ Calls are made via the Call changelist in Admin. A researcher pulls up the Log b
 
 ## Calls that repeat on a specified interval
 
----
+In the example above, the ModelCaller creates the next WEEKLY call once the current call is CLOSED. It will do so until the `unscheduling` model is complete (in this case the `PostnatalEnrollment` model). The event of filling in the `unscheduling` model closes any scheduled calls for this participant managed by this ModelCaller.
 
 ## Appointment Caller
 
----
+TODO
 
 
 
