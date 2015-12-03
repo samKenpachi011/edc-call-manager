@@ -259,6 +259,12 @@ def model_caller_on_post_save(sender, instance, raw, created, using, update_fiel
         site_model_callers.unschedule_calls(sender, instance)
 
 
+@receiver(post_save, weak=False, dispatch_uid='call_on_post_save')
+def call_on_post_save(sender, instance, raw, created, using, update_fields, **kwargs):
+    if not raw and not created:
+        site_model_callers.schedule_next_call(instance)
+
+
 @receiver(post_save, weak=False, dispatch_uid='log_entry_on_post_save')
 def log_entry_on_post_save(sender, instance, raw, created, using, **kwargs):
     """Updates call after a log entry ('call_status', 'call_attempts', 'call_outcome')."""

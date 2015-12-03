@@ -1,11 +1,12 @@
 from collections import namedtuple
-
+from datetime import date
 from django.core.exceptions import MultipleObjectsReturned
 from django.utils import timezone
 from django.utils.text import slugify
 
 from edc_call_manager.models import Call, Log
 from edc_constants.constants import CLOSED
+from dateutil.relativedelta import relativedelta, MO, TU, WE, TH, FR
 
 
 DAILY = 'd'
@@ -66,7 +67,7 @@ class ModelCaller:
             initials=consent.initials,
             registration_datetime=consent.consent_datetime)
 
-    def schedule_call(self, instance):
+    def schedule_call(self, instance, scheduled=None):
         if self.consent_model:
             subject = self.personal_details_from_consent(instance)
         else:
@@ -75,6 +76,7 @@ class ModelCaller:
             subject_identifier=subject.subject_identifier,
             first_name=subject.first_name,
             initials=subject.initials,
+            scheduled=scheduled or date.today(),
             consent_datetime=subject.registration_datetime,
             label=self.label,
             repeats=self.repeats)
@@ -87,6 +89,16 @@ class ModelCaller:
             subject_identifier=instance.subject_identifier,
             label=self.label).exclude(call_status=CLOSED)
         self.cancel_calls(calls)
+
+    def schedule_next_call(self, call, scheduled=None):
+        if not scheduled:
+            if self.interval == DAILY:
+                scheduled = call.scheduled + relativedelta(days=+1)
+            elif self.interval == WEEKLY:
+                scheduled = call.scheduled + relativedelta(days=+1, weekday=call.scheduled.weekday())
+            elif self.interval == MONTHLY:
+                scheduled = call.scheduled + relativedelta(months=+1, weekday=call.scheduled.weekday())
+        self.schedule_call(call, scheduled)
 
     def cancel_calls(self, calls):
         for call in calls:

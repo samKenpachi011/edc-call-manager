@@ -199,3 +199,30 @@ class TestCaller(TestCase):
             call_again=NO)
         call = Call.objects.get(pk=call_pk)
         self.assertEqual(call.call_attempts, 2)
+
+    def test_schedule_next_call(self):
+        subject_identifier = '1111111'
+        TestStartModel.objects.create(subject_identifier=subject_identifier)
+        call = Call.objects.get(
+            subject_identifier=subject_identifier,
+            call_status=NEW)
+        call_pk = call.pk
+        call_label = call.label
+        log = Log.objects.get(call=call)
+        LogEntry.objects.create(
+            log=log,
+            call_datetime=timezone.now(),
+            contact_type='indirect',
+            survival_status=ALIVE,
+            call_again=NO)
+        call = Call.objects.get(pk=call_pk)
+        self.assertEqual(call.call_status, CLOSED)
+        self.assertEqual(Call.objects.filter(
+            subject_identifier=subject_identifier,
+            label=call_label,
+            call_status=NEW).exclude(pk=call_pk).count(), 1)
+        scheduled = Call.objects.filter(
+            subject_identifier=subject_identifier,
+            label=call_label,
+            call_status=NEW).exclude(pk=call_pk)[0].scheduled
+        self.assertGreater(scheduled, call.scheduled)
