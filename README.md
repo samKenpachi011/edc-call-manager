@@ -46,7 +46,7 @@ The `AnteNatalFollowUpModelCaller` ModelCaller is declared as follows:
 	    unscheduling_model = PostNatalEnrollment
 	    interval = WEEKLY
 
-In the declaration we have included the `consent_model` and the `locator_model`. ModelCaller uses these models to extract personal information on the subject for the research assistant making the follow-up calls. In almost all cases, the subject has been consented and locator information has been captured (including any restrictions on how the subject may be contacted, if at all). The consent and locator mixins are available in projects `edc_consent` and `edc_locator`. Personal information is always encrypted at rest in any EDC model (see modules `django_crypto_fields` and `edc.core.crypto_fields`).
+Included in the declaration are `consent_model` and `locator_model`. ModelCaller uses these model classes to extract personal information on the subject to inform the research assistant making the follow-up calls. In almost all cases, the subject has been consented and locator information captured. Having the locator information is important as there may be restrictions on when and where the subject may be contacted, if at all. The consent and locator models are built using model mixins available in projects `edc_consent` and `edc_locator`. Personal information is always encrypted at rest in any EDC model (see modules `django_crypto_fields` and `edc.core.crypto_fields`).
 
 
 ## Expected Flow
