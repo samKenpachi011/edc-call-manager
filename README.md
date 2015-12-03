@@ -54,15 +54,22 @@ In the declaration we have included the `consent_model` and the `locator_model`.
 * ICF, complete `Consent` Form
 * Complete `Locator` Form
 * Complete the `ModelCaller` scheduling form (in the example this is `AntenatalEnrollment`)
-* Go to Call in Admin
+* Go to `Call` in Admin
 * Tick a participant to call
 * Select `Call Participant` action item and click Go
-* Complete the Log Entry for this call attempt
+* Complete the `Log Entry` for this call attempt.
 
 ## Making a call and updating the `Log`
 
 Calls are made via the Call changelist in Admin. A researcher pulls up the Log by ticking the call instance for the participant, selecting the `Call Participant` action item, and clikcing Go. The EDC will navigate to the Add/Change view of the Log and Log Entries.
 
+## Calls that repeat on a specified interval
+
+---
+
+## Appointment Caller
+
+---
 
 
 
