@@ -46,12 +46,12 @@ The `AnteNatalFollowUpModelCaller` ModelCaller is declared as follows:
 	    unscheduling_model = PostNatalEnrollment
 	    interval = WEEKLY
 
-In the declaration we have included the `consent_model` and the `locator_model`. ModelCaller uses these models to extract personal information on the subject for the research assistant making the follow-up calls. In almost all cases, the subject has been consented and locator information (including any restrictions on how the subject is contacted) has been captured. See also modules `edc_consent` and `edc_locator`. Personal information is always encrypted at rest in any EDC model (see modules `django_crypto_fields` and `edc.core.crypto_fields`).
+In the declaration we have included the `consent_model` and the `locator_model`. ModelCaller uses these models to extract personal information on the subject for the research assistant making the follow-up calls. In almost all cases, the subject has been consented and locator information has been captured (including any restrictions on how the subject may be contacted, if at all). The consent and locator mixins are available in projects `edc_consent` and `edc_locator`. Personal information is always encrypted at rest in any EDC model (see modules `django_crypto_fields` and `edc.core.crypto_fields`).
 
 
 ## Making a call and updating the `Log`
 
-When the research assistant is ready to make a follow-up with the patient, 
+Calls are made via the Call changelist in Admin. A researcher pulls up the Log by ticking the call instance for the participant, selecting the `Call Participant` action item, and clikcing Go. The EDC will navigate to the Add/Change view of the Log and Log Entries.
 
 
 
