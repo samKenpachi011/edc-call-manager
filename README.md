@@ -70,9 +70,13 @@ Calls are made via the Call changelist in Admin. A researcher pulls up the Log b
 
 In the example above, the ModelCaller creates the next WEEKLY call once the current call is CLOSED. It will do so until the `unscheduling` model is complete (in this case the `PostnatalEnrollment` model). The event of filling in the `unscheduling` model closes any scheduled calls for this participant managed by this ModelCaller.
 
+## Management command to update calls
+
+TODO: a management command may be run daily to inspect calls relative to the repeat interval specified on the ModelCaller. If the window period to make the current call has passed, the current call will be closed and a new call scheduled.
+
 ## Appointment Caller
 
-TODO
+TODO: The `AppointmentCaller` schedules calls X-days before the appointment date and unschedules the call once the visit report is complete.
 
 
 
