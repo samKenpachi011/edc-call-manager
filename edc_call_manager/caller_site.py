@@ -82,6 +82,10 @@ class CallerSite:
             if 'object has no attribute \'label\'' not in str(e):
                 raise AttributeError(e)
 
+    def update_call_from_log(self, call, log_entry=None):
+        model_caller = self._registry['model_callers'].get(call.label)
+        model_caller.update_call_from_log(call, log_entry)
+
     def autodiscover(self):
         """ Autodiscover rules from a model_callers module."""
         for app in settings.INSTALLED_APPS:

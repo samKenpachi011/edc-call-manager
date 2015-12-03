@@ -1,12 +1,12 @@
 from django.db import models
 from django.test import TestCase
+from django.utils import timezone
 
 from edc_call_manager.caller_site import site_model_callers, AlreadyRegistered
 from edc_call_manager.model_caller import ModelCaller, WEEKLY
 from edc_call_manager.models import Call, Log, LogEntry
-from edc_constants.constants import CLOSED, NEW, YES, NO, ALIVE, DEAD
+from edc_constants.constants import CLOSED, NEW, YES, NO, ALIVE, DEAD, OPEN
 from edc_locator.mixins import LocatorMixin
-from django.utils import timezone
 
 
 class TestModel(models.Model):
@@ -179,9 +179,10 @@ class TestCaller(TestCase):
         self.assertIn('Alive. Do not call', call.call_outcome)
 
     def test_call_attempts(self):
-        TestStartModel.objects.create(subject_identifier='1111111')
+        subject_identifier = '1111111'
+        TestStartModel.objects.create(subject_identifier=subject_identifier)
         call = Call.objects.get(
-            subject_identifier='1111111',
+            subject_identifier=subject_identifier,
             call_status=NEW)
         call_pk = call.pk
         log = Log.objects.get(call=call)
@@ -191,6 +192,9 @@ class TestCaller(TestCase):
             contact_type='indirect',
             survival_status=ALIVE,
             call_again=YES)
+        call = Call.objects.get(pk=call_pk)
+        self.assertEqual(call.call_attempts, 1)
+        self.assertEqual(call.call_status, OPEN)
         LogEntry.objects.create(
             log=log,
             call_datetime=timezone.now(),
@@ -199,6 +203,10 @@ class TestCaller(TestCase):
             call_again=NO)
         call = Call.objects.get(pk=call_pk)
         self.assertEqual(call.call_attempts, 2)
+        self.assertEqual(call.call_status, CLOSED)
+        # created a new call after closing the previous
+        self.assertEqual(Call.objects.filter(
+            subject_identifier=subject_identifier, label=call.label).count(), 2)
 
     def test_schedule_next_call(self):
         subject_identifier = '1111111'

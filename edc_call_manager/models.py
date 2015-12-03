@@ -75,18 +75,25 @@ class Call(BaseUuidModel):
         default=NEW,
     )
 
+    auto_closed = models.BooleanField(
+        default=False,
+        editable=False,
+        help_text='If True call status was changed to CLOSED by EDC.')
+
     history = AuditTrail()
 
     def __str__(self):
-        return '{} {} [{}]'.format(
+        return '{} {} [{}{}]'.format(
             self.subject_identifier,
             self.first_name or '??',
             self.initials or '??',
             self.call_status,
+            ' by EDC' if self.auto_closed else ''
         )
 
     class Meta:
         app_label = 'edc_call_manager'
+        unique_together = ('subject_identifier', 'label', 'scheduled', )
 
 
 class Log(BaseUuidModel):
@@ -229,22 +236,6 @@ class LogEntry (BaseUuidModel):
             outcome.append('Do not call')
         return outcome
 
-    def update_call(self, call_attempts=None, commit=True):
-        call = self.log.call
-        call.call_outcome = '. '.join(self.outcome)
-        call.call_datetime = self.call_datetime
-        call.call_attempts = call_attempts or self.log_entries()
-        if self.call_again == YES:
-            call.call_status = OPEN
-        else:
-            call.call_status = CLOSED
-        call.modified = self.modified
-        call.user_modified = self.user_modified
-        if commit:
-            call.save(
-                update_fields=['call_status', 'call_attempts', 'call_outcome', 'modified', 'user_modified'])
-        return call
-
     def log_entries(self):
         return self.__class__.objects.filter(log=self.log)
 
@@ -254,6 +245,7 @@ class LogEntry (BaseUuidModel):
 
 @receiver(post_save, weak=False, dispatch_uid='model_caller_on_post_save')
 def model_caller_on_post_save(sender, instance, raw, created, using, update_fields, **kwargs):
+    """A signal that acts on scheduling and unscheduling models."""
     if not raw and created:
         site_model_callers.schedule_calls(sender, instance)
         site_model_callers.unschedule_calls(sender, instance)
@@ -261,8 +253,16 @@ def model_caller_on_post_save(sender, instance, raw, created, using, update_fiel
 
 @receiver(post_save, weak=False, dispatch_uid='call_on_post_save')
 def call_on_post_save(sender, instance, raw, created, using, update_fields, **kwargs):
+    """A signal that acts on the Call model and schedules a new call if the current one is closed
+    and configured to repeat on the model_caller."""
     if not raw and not created:
-        site_model_callers.schedule_next_call(instance)
+        try:
+            if instance.call_status == CLOSED:
+                site_model_callers.unschedule_calls(sender, instance)
+                site_model_callers.schedule_next_call(instance)
+        except AttributeError as e:
+            if 'has no attribute \'call_status\'' not in str(e):
+                raise AttributeError(e)
 
 
 @receiver(post_save, weak=False, dispatch_uid='log_entry_on_post_save')
@@ -270,9 +270,7 @@ def log_entry_on_post_save(sender, instance, raw, created, using, **kwargs):
     """Updates call after a log entry ('call_status', 'call_attempts', 'call_outcome')."""
     if not raw:
         try:
-            log_entries = LogEntry.objects.filter(log=instance.log).order_by('-call_datetime')
-            if instance.pk == log_entries[0].pk:
-                instance.update_call(log_entries.count())
+            site_model_callers.update_call_from_log(instance.log.call, log_entry=instance)
         except AttributeError as e:
             if 'has no attribute \'log\'' not in str(e):
                 raise AttributeError(e)
