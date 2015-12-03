@@ -75,8 +75,12 @@ class CallerSite:
             pass
 
     def schedule_next_call(self, call):
-        model_caller = self._registry['model_callers'].get(call.label)
-        model_caller.schedule_next_call(call)
+        try:
+            model_caller = self._registry['model_callers'].get(call.label)
+            model_caller.schedule_next_call(call)
+        except AttributeError as e:
+            if 'object has no attribute \'label\'' not in str(e):
+                raise AttributeError(e)
 
     def autodiscover(self):
         """ Autodiscover rules from a model_callers module."""
