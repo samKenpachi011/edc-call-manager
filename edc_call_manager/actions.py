@@ -1,9 +1,9 @@
+from django.contrib import messages
+from django.contrib.messages.constants import WARNING
 from django.core.urlresolvers import reverse
 from django.http.response import HttpResponseRedirect
 
 from .models import Log
-from django.contrib import messages
-from django.contrib.messages.constants import WARNING
 
 
 def call_participant(modeladmin, request, queryset):

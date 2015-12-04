@@ -15,7 +15,7 @@ class TestModel(models.Model):
         max_length=25)
 
     report_datetime = models.DateField(
-        default=timezone.now())
+        default=timezone.now)
 
     class Meta:
         app_label = 'edc_call_manager'
@@ -36,7 +36,7 @@ class TestStartModel(models.Model):
         max_length=25)
 
     report_datetime = models.DateField(
-        default=timezone.now())
+        default=timezone.now)
 
     class Meta:
         app_label = 'edc_call_manager'
@@ -48,7 +48,7 @@ class TestStopModel(models.Model):
         max_length=25)
 
     report_datetime = models.DateField(
-        default=timezone.now())
+        default=timezone.now)
 
     class Meta:
         app_label = 'edc_call_manager'

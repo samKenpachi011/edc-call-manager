@@ -1,10 +1,9 @@
 from django.contrib import admin
 
 from edc_base.modeladmin.admin import BaseModelAdmin, BaseStackedInline
+from edc_call_manager.actions import call_participant
 
 from .models import Log, Call, LogEntry
-# from django.contrib.admin.decorators import register
-from edc_call_manager.actions import call_participant
 
 
 class CallAdmin(BaseModelAdmin):
