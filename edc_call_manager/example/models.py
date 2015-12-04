@@ -3,7 +3,7 @@ from datetime import date
 from django.db import models
 from django.utils import timezone
 
-from edc_locator.mixins import LocatorMixin
+from edc_locator.models import LocatorMixin
 
 
 class Locator(LocatorMixin, models.Model):
