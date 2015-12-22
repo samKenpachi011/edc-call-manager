@@ -47,11 +47,6 @@ class CallAdmin(BaseModelAdmin):
 
     search_fields = ('subject_identifier', 'initials')
 
-#     def formfield_for_foreignkey(self, db_field, request, **kwargs):
-#         if db_field.name == "antenatal_enrollment":
-#             kwargs["queryset"] = AntenatalEnrollment.objects.filter(id__exact=request.GET.get('antenatal_enrollment', 0))
-#         return super(CallListAdmin, self).formfield_for_foreignkey(db_field, request, **kwargs)
-
 admin.site.register(Call, CallAdmin)
 
 
