@@ -6,7 +6,7 @@ from edc_call_manager.caller_site import site_model_callers, AlreadyRegistered
 from edc_call_manager.model_caller import ModelCaller, WEEKLY
 from edc_call_manager.models import Call, Log, LogEntry
 from edc_constants.constants import CLOSED, NEW, YES, NO, ALIVE, DEAD, OPEN
-from edc_locator.mixins import LocatorMixin
+from edc_locator.models import LocatorMixin
 
 
 class TestModel(models.Model):

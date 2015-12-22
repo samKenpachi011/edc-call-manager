@@ -27,7 +27,6 @@ from unipath import Path
 
 # BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 BASE_DIR = Path(os.path.dirname(os.path.realpath(__file__)))
-KEY_PATH = '/Volumes/bhp066/live_keys/'
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.8/howto/deployment/checklist/
@@ -50,7 +49,6 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    # 'django_crypto_fields',
     'edc_base',
     'edc.core.crypto_fields',
     'edc.device.sync',
@@ -140,3 +138,4 @@ MIDDLEMAN_DEVICE_ID_LIST = ['98']
 FIELD_MAX_LENGTH = 'default'
 IS_SECURE_DEVICE = True
 ALLOW_MODEL_SERIALIZATION = True
+KEY_PATH = os.path.join(BASE_DIR.ancestor(1), 'crypto_fields')
