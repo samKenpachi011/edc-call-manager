@@ -50,8 +50,8 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'edc_base',
-    'edc.core.crypto_fields',
-    'edc.device.sync',
+    'edc_crypto_fields',
+    'edc_sync',
     'edc_consent',
     'edc_call_manager',
     'edc_call_manager.example'
