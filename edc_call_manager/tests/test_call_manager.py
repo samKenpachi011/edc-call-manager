@@ -1,5 +1,4 @@
 from django.db import models
-from django.test import TestCase
 from django.utils import timezone
 
 from edc_call_manager.caller_site import site_model_callers, AlreadyRegistered
@@ -7,6 +6,8 @@ from edc_call_manager.model_caller import ModelCaller, WEEKLY
 from edc_call_manager.models import Call, Log, LogEntry
 from edc_constants.constants import CLOSED, NEW, YES, NO, ALIVE, DEAD, OPEN
 from edc_locator.models import LocatorMixin
+
+from .base_test_case import BaseTestCase
 
 
 class TestModel(models.Model):
@@ -71,7 +72,7 @@ class LocatorTestModelCaller(ModelCaller):
     locator_model = Locator
 
 
-class TestCaller(TestCase):
+class TestCallManager(BaseTestCase):
 
     def setUp(self):
 
