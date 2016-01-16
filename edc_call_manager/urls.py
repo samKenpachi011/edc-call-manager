@@ -8,8 +8,11 @@
 #
 from django.conf.urls import include, url
 from django.contrib import admin
+
+from edc_base.utils import edc_base_startup
 from edc_call_manager.caller_site import site_model_callers
 
+edc_base_startup()
 admin.autodiscover()
 site_model_callers.autodiscover()
 
