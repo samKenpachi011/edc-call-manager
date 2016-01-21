@@ -6,6 +6,8 @@ from edc_call_manager.model_caller import ModelCaller, WEEKLY
 from edc_call_manager.models import Call, Log, LogEntry
 from edc_constants.constants import CLOSED, NEW, YES, NO, ALIVE, DEAD, OPEN
 from edc_locator.models import LocatorMixin
+from edc_registration.models import RegisteredSubject
+from edc_registration.tests.factories import RegisteredSubjectFactory
 
 from .base_test_case import BaseTestCase
 
@@ -43,6 +45,14 @@ class TestStartModel(models.Model):
         app_label = 'edc_call_manager'
 
 
+class TestRegisteredSubjectReferenceModel(TestStartModel):
+
+    registered_subject = registered_subject = models.OneToOneField(RegisteredSubject, null=True)
+
+    class Meta:
+        app_label = 'edc_call_manager'
+
+
 class TestStopModel(models.Model):
 
     subject_identifier = models.CharField(
@@ -72,6 +82,13 @@ class LocatorTestModelCaller(ModelCaller):
     locator_model = Locator
 
 
+# @register(TestRegisteredSubjectReferenceModel)
+# class RegisteredSubjectReferenceModelCaller(ModelCaller):
+#     label = 'registeresubject_reference'
+#     locator_model = Locator
+#     interval = WEEKLY
+
+
 class TestCallManager(BaseTestCase):
 
     def setUp(self):
@@ -79,9 +96,11 @@ class TestCallManager(BaseTestCase):
         site_model_callers.reset_registry()
         site_model_callers.register(TestModel, TestModelCaller)
         site_model_callers.register(TestStartModel, RepeatingTestModelCaller)
+        site_model_callers.register(TestRegisteredSubjectReferenceModel, RepeatingTestModelCaller)
 
     def test_register(self):
         self.assertIn(TestModel, site_model_callers.scheduling_models)
+        self.assertIn(TestRegisteredSubjectReferenceModel, site_model_callers.scheduling_models)
 
     def test_register_duplicate(self):
         class TestModelCaller2(ModelCaller):
@@ -103,6 +122,12 @@ class TestCallManager(BaseTestCase):
         call = Call.objects.get(subject_identifier='1111111')
         self.assertEqual(call.label, 'my-test-caller')
         self.assertTrue(call.repeats)
+
+    def test_scheduling_registeredsubject_reference_model(self):
+        reg = RegisteredSubjectFactory(subject_identifier='1111111')
+        TestRegisteredSubjectReferenceModel.objects.create(subject_identifier=reg.subject_identifier,
+                                                           registered_subject=reg)
+        self.assertEqual(Call.objects.filter(registered_subject__subject_identifier='1111111').count(), 1)
 
     def test_unscheduling_ignores_if_no_scheduled(self):
         TestStopModel.objects.create(subject_identifier='1111111')

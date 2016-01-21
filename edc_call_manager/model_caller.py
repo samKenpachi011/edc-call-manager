@@ -15,6 +15,7 @@ MONTHLY = 'm'
 YEARLY = 'y'
 
 Subject = namedtuple('Person', 'subject_identifier first_name initials registration_datetime')
+NonSubject = namedtuple('NonSubject', 'registered_subject subject_identifier first_name initials registration_datetime')
 
 
 class ModelCaller:
@@ -53,6 +54,15 @@ class ModelCaller:
             initials=self.get_value(instance, 'initials'),
             registration_datetime=self.get_value(instance, 'report_datetime'))
 
+    def personal_details_with_registeredsbject(self, instance):
+        """Returns a namedtuple of subject details including instance of RegisteredSubject."""
+        return NonSubject(
+            registered_subject=instance.registered_subject,
+            subject_identifier=instance.subject_identifier,
+            first_name=self.get_value(instance, 'first_name'),
+            initials=self.get_value(instance, 'initials'),
+            registration_datetime=self.get_value(instance, 'report_datetime'))
+
     def personal_details_from_consent(self, instance):
         """Returns a namedtuple with values from the consent model.
 
@@ -78,15 +88,28 @@ class ModelCaller:
         if self.consent_model:
             subject = self.personal_details_from_consent(instance)
         else:
-            subject = self.personal_details(instance)
-        call = self.call_model.objects.create(
-            subject_identifier=subject.subject_identifier,
-            first_name=subject.first_name,
-            initials=subject.initials,
-            scheduled=scheduled or date.today(),
-            consent_datetime=subject.registration_datetime,
-            label=self.label,
-            repeats=self.repeats)
+            try:
+                instance.registered_subject
+                subject = self.personal_details_with_registeredsbject(instance)
+                call = self.call_model.objects.create(
+                    subject_identifier=subject.subject_identifier,
+                    registered_subject=subject.registered_subject,
+                    first_name=subject.first_name,
+                    initials=subject.initials,
+                    scheduled=scheduled or date.today(),
+                    consent_datetime=subject.registration_datetime,
+                    label=self.label,
+                    repeats=self.repeats)
+            except AttributeError:
+                subject = self.personal_details(instance)
+                call = self.call_model.objects.create(
+                    subject_identifier=subject.subject_identifier,
+                    first_name=subject.first_name,
+                    initials=subject.initials,
+                    scheduled=scheduled or date.today(),
+                    consent_datetime=subject.registration_datetime,
+                    label=self.label,
+                    repeats=self.repeats)
         self.log_model.objects.create(
             call=call,
             locator_information=self.get_locator(instance))

@@ -54,6 +54,7 @@ INSTALLED_APPS = (
     'edc_sync',
     'edc_consent',
     'edc_call_manager',
+    'edc_registration',
     'edc_call_manager.example'
 )
 
