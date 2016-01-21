@@ -12,12 +12,15 @@ from edc_base.model.models import BaseUuidModel
 from edc_base.model.validators import datetime_not_future, datetime_not_before_study_start, date_is_future
 from edc_constants.choices import YES_NO_UNKNOWN, TIME_OF_DAY, TIME_OF_WEEK, YES_NO, ALIVE_DEAD_UNKNOWN
 from edc_constants.constants import YES, CLOSED, OPEN, NEW, DEAD, NO, ALIVE
+from edc_registration.models import RegisteredSubject
 
 from .choices import CONTACT_TYPE, APPT_GRADING, APPT_LOCATIONS
 from .caller_site import site_model_callers
 
 
 class Call(BaseUuidModel):
+
+    registered_subject = models.OneToOneField(RegisteredSubject, null=True)
 
     subject_identifier = models.CharField(max_length=25)
 
