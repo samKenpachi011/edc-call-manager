@@ -20,7 +20,7 @@ from .caller_site import site_model_callers
 
 class Call(BaseUuidModel):
 
-    registered_subject = models.OneToOneField(RegisteredSubject, null=True)
+    registered_subject = models.ForeignKey(RegisteredSubject, null=True)
 
     subject_identifier = models.CharField(max_length=25)
 
