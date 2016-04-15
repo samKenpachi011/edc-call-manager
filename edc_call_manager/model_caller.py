@@ -38,7 +38,7 @@ class ModelCaller:
     def __init__(self, model):
         self.model = model
         label = self.label or self.__class__.__name__
-        self.label = slugify(unicode(label))
+        self.label = slugify(str(label))
         self.repeats = True if self.unscheduling_model or self.repeat_times > 0 else False
         if self.repeats and self.interval not in [DAILY, WEEKLY, MONTHLY, YEARLY]:
             raise ValueError('ModelCaller expected an \'interval\' for a call scheduled to repeat. Got None.')
