@@ -1,13 +1,14 @@
 from collections import namedtuple
 from datetime import date
+from dateutil.relativedelta import relativedelta
+
 from django.core.exceptions import MultipleObjectsReturned
 from django.utils import timezone
 from django.utils.text import slugify
 
-from edc_call_manager.models import Call, Log, LogEntry
 from edc_constants.constants import CLOSED, OPEN, YES
-from dateutil.relativedelta import relativedelta
 
+from .models import Call, Log, LogEntry
 
 DAILY = 'd'
 WEEKLY = 'w'

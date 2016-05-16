@@ -1,13 +1,7 @@
 import copy
 
 from django.conf import settings
-try:
-    # django version >= 1.9
-    from django.utils.module_loading import import_module
-    #from django.utils.importlib import import_module
-except:
-    # django versions < 1.9
-    from django.utils.importlib import import_module
+from django.utils.module_loading import import_module
 from django.utils.module_loading import module_has_submodule
 
 

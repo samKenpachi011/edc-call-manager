@@ -1,12 +1,12 @@
 from datetime import date
 
-from django.db import models
 from django.core.validators import RegexValidator
+from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+from django_crypto_fields.fields import EncryptedTextField, FirstnameField
+from simple_history.models import HistoricalRecords as AuditTrail
 
-from edc_base.audit_trail import AuditTrail
-from edc_base.encrypted_fields import EncryptedTextField, FirstnameField
 from edc_base.model.fields import OtherCharField
 from edc_base.model.models import BaseUuidModel
 from edc_base.model.validators import datetime_not_future, datetime_not_before_study_start, date_is_future
