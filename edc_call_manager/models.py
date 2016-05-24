@@ -8,19 +8,16 @@ from django_crypto_fields.fields import EncryptedTextField, FirstnameField
 from simple_history.models import HistoricalRecords as AuditTrail
 
 from edc_base.model.fields import OtherCharField
-from edc_base.model.models import BaseUuidModel
 from edc_base.model.validators import datetime_not_future, datetime_not_before_study_start, date_is_future
 from edc_constants.choices import YES_NO_UNKNOWN, TIME_OF_DAY, TIME_OF_WEEK, YES_NO, ALIVE_DEAD_UNKNOWN
 from edc_constants.constants import YES, CLOSED, OPEN, NEW, DEAD, NO, ALIVE
-from edc_registration.models import RegisteredSubject
 
 from .choices import CONTACT_TYPE, APPT_GRADING, APPT_LOCATIONS
 from .caller_site import site_model_callers
+from django.utils import timezone
 
 
-class Call(BaseUuidModel):
-
-    registered_subject = models.ForeignKey(RegisteredSubject, null=True)
+class CallModelMixin(models.Model):
 
     subject_identifier = models.CharField(max_length=25)
 
@@ -78,6 +75,9 @@ class Call(BaseUuidModel):
 
     history = AuditTrail()
 
+    def natural_key(self):
+        return (self.subject_identifier, self.label, self.scheduled)
+
     def __str__(self):
         return '{} {} [{}{}]'.format(
             self.subject_identifier,
@@ -87,13 +87,13 @@ class Call(BaseUuidModel):
             ' by EDC' if self.auto_closed else '')
 
     class Meta:
-        app_label = 'edc_call_manager'
         unique_together = ('subject_identifier', 'label', 'scheduled', )
+        abstract = True
 
 
-class Log(BaseUuidModel):
+class LogModelMixin(models.Model):
 
-    call = models.ForeignKey(Call)
+    log_datetime = models.DateTimeField(editable=False, default=timezone.now)
 
     locator_information = EncryptedTextField(
         null=True,
@@ -106,16 +106,19 @@ class Log(BaseUuidModel):
 
     history = AuditTrail()
 
+    def natural_key(self):
+        return (self.log_datetime, ) + self.call.natural_key()
+    natural_key.dependencies = ['call_manager.call']
+
     def __str__(self):
         return str(self.call)
 
     class Meta:
-        app_label = 'edc_call_manager'
+        unique_together = ('log_datetime', 'call', )
+        abstract = True
 
 
-class LogEntry (BaseUuidModel):
-
-    log = models.ForeignKey(Log)
+class LogEntryModelMixin (models.Model):
 
     call_datetime = models.DateTimeField()
 
@@ -199,10 +202,14 @@ class LogEntry (BaseUuidModel):
 
     history = AuditTrail()
 
+    def natural_key(self):
+        return (self.call_datetime, ) + self.log.natural_key()
+    natural_key.dependencies = ['call_manager.log']
+
     def save(self, *args, **kwargs):
         if self.survival_status == DEAD:
             self.call_again = NO
-        super(LogEntry, self).save(*args, **kwargs)
+        super(LogEntryModelMixin, self).save(*args, **kwargs)
 
     @property
     def outcome(self):
@@ -221,19 +228,20 @@ class LogEntry (BaseUuidModel):
         return self.__class__.objects.filter(log=self.log)
 
     class Meta:
-        app_label = 'edc_call_manager'
+        unique_together = ('call_datetime', 'log')
+        abstract = True
 
 
-@receiver(post_save, weak=False, dispatch_uid='model_caller_on_post_save')
-def model_caller_on_post_save(sender, instance, raw, created, using, update_fields, **kwargs):
-    """A signal that acts on scheduling and unscheduling models."""
+@receiver(post_save, weak=False, dispatch_uid='call_manager_model_caller_on_post_save')
+def call_manager_model_caller_on_post_save(sender, instance, raw, created, using, update_fields, **kwargs):
+    """A signal that acts on scheduling and unscheduling models on create."""
     if not raw and created:
         site_model_callers.schedule_calls(sender, instance)
         site_model_callers.unschedule_calls(sender, instance)
 
 
-@receiver(post_save, weak=False, dispatch_uid='call_on_post_save')
-def call_on_post_save(sender, instance, raw, created, using, update_fields, **kwargs):
+@receiver(post_save, weak=False, dispatch_uid='call_manager_call_on_post_save')
+def call_manager_call_on_post_save(sender, instance, raw, created, using, update_fields, **kwargs):
     """A signal that acts on the Call model and schedules a new call if the current one is closed
     and configured to repeat on the model_caller."""
     if not raw and not created:
@@ -246,8 +254,8 @@ def call_on_post_save(sender, instance, raw, created, using, update_fields, **kw
                 raise AttributeError(e)
 
 
-@receiver(post_save, weak=False, dispatch_uid='log_entry_on_post_save')
-def log_entry_on_post_save(sender, instance, raw, created, using, **kwargs):
+@receiver(post_save, weak=False, dispatch_uid='call_manager_log_entry_on_post_save')
+def call_manager_log_entry_on_post_save(sender, instance, raw, created, using, **kwargs):
     """Updates call after a log entry ('call_status', 'call_attempts', 'call_outcome')."""
     if not raw:
         try:

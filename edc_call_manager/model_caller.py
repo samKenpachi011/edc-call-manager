@@ -1,21 +1,17 @@
-from collections import namedtuple
 from datetime import date
 from dateutil.relativedelta import relativedelta
 
-from django.core.exceptions import MultipleObjectsReturned
+from django.core.exceptions import MultipleObjectsReturned, ImproperlyConfigured
 from django.utils import timezone
 from django.utils.text import slugify
 
 from edc_constants.constants import CLOSED, OPEN, YES
 
-from .models import Call, Log, LogEntry
 
 DAILY = 'd'
 WEEKLY = 'w'
 MONTHLY = 'm'
 YEARLY = 'y'
-
-Subject = namedtuple('Person', 'registered_subject subject_identifier first_name initials')
 
 
 class ModelCaller:
@@ -27,39 +23,81 @@ class ModelCaller:
     """
 
     consent_model = None
+    consent_model_subject_foreignkey = None
     locator_model = None
     locator_filter = 'subject_identifier'
-    call_model = Call
-    log_model = Log
+    call_model = None  # e.g. Call
+    call_model_subject_foreignkey = 'registered_subject'
+    log_model = None  # e.g. Log
+    log_entry_model = None  # e.g. LogEntry
     interval = None
     label = None
     repeat_times = 0
     unscheduling_model = None
 
-    def __init__(self, model):
+    def __init__(self, model, call_model=None, log_model=None, log_entry_model=None):
         self.model = model
+        call_model = call_model or self.call_model
+        try:
+            self.call_model, self.call_model_subject_foreignkey = self.call_model
+        except IndexError:
+            self.call_model = call_model or self.call_model
+        try:
+            self.consent_model, self.consent_model_subject_foreignkey = self.consent_model
+        except TypeError:
+            pass
+        try:
+            self.locator_model, self.locator_filter = self.locator_model
+        except TypeError:
+            pass
+        if self.call_model_subject_foreignkey:
+            if not [fld.name for fld in self.call_model._meta.fields if fld.name in [self.call_model_subject_foreignkey]]:
+                raise ImproperlyConfigured(
+                    'ModelCaller model \'{}.{}\' does not have field \'{}\'. See {} declaration for attribute call_model_subject_foreignkey.'.format(
+                        self.call_model._meta.app_label, self.call_model._meta.model_name,
+                        self.call_model_subject_foreignkey, self.__class__.__name__))
+        if self.consent_model and self.consent_model_subject_foreignkey:
+            if not [fld.name for fld in self.consent_model._meta.fields if fld.name in [self.consent_model_subject_foreignkey]]:
+                raise ImproperlyConfigured(
+                    'ModelCaller model \'{}.{}\' does not have field \'{}\'. See {} declaration for attribute consent_model_subject_foreignkey.'.format(
+                        self.consent_model._meta.app_label, self.consent_model._meta.model_name,
+                        self.consent_model_subject_foreignkey,
+                        self.__class__.__name__))
+        self.log_model = log_model or self.log_model
+        self.log_entry_model = log_entry_model or self.log_entry_model
+        for attr in ['locator_model', 'call_model', 'log_model', 'log_entry_model']:
+            value = getattr(self, attr)
+            if not value:
+                raise ImproperlyConfigured(
+                    'Attribute {0}.{1} cannot be None. See {0} declaration.'.format(
+                        self.__class__.__name__, attr))
         label = self.label or self.__class__.__name__
         self.label = slugify(str(label))
         self.repeats = True if self.unscheduling_model or self.repeat_times > 0 else False
-        if self.repeats and self.interval not in [DAILY, WEEKLY, MONTHLY, YEARLY]:
+        if self.repeats and self.repeat_times > 0 and self.interval not in [DAILY, WEEKLY, MONTHLY, YEARLY]:
             raise ValueError('ModelCaller expected an \'interval\' for a call scheduled to repeat. Got None.')
 
     def personal_details(self, instance):
-        """Returns a namedtuple of subject details.
+        """Returns additional options to be used to create a Call instance.
 
-        Override to supply another source of this information, e.g. RegisteredSubject."""
-        try:
-            registered_subject = instance.registered_subject
-        except AttributeError:
-            registered_subject = None
-        return Subject(
-            registered_subject=registered_subject,
-            subject_identifier=instance.subject_identifier,
-            first_name=self.get_value(instance, 'first_name'),
-            initials=self.get_value(instance, 'initials'))._asdict()
+        Used if the consent is not available."""
+        subject_foreignkey = None
+        options = {'subject_identifier': instance.subject_identifier,
+                   'first_name': self.get_value(instance, 'first_name'),
+                   'initials': self.get_value(instance, 'initials')}
+        if ''.join(self.call_model_subject_foreignkey.split('_')) == instance._meta.model_name:
+            subject_foreignkey = instance
+        else:
+            try:
+                subject_foreignkey = getattr(instance, self.call_model_subject_foreignkey)
+            except AttributeError:
+                pass
+        if subject_foreignkey:
+            options.update({self.call_model_subject_foreignkey: subject_foreignkey})
+        return options
 
     def personal_details_from_consent(self, instance):
-        """Returns a namedtuple with values from the consent model.
+        """Returns additional options to be used to create a Call instance.
 
         You should use the edc_consent RequiresConsentMixin on the scheduling and unscheduling models to
         avoid hitting the ValueError below when the subject is not consented."""
@@ -72,11 +110,15 @@ class ModelCaller:
             raise ValueError(
                 'ModelCaller \'{}\' is configured to require a consent for subject \'{}\'. '
                 'Got \'{}\''.format(self.label, instance.subject_identifier, str(e)))
-        return Subject(
-            registered_subject=consent.registered_subject,
-            subject_identifier=consent.subject_identifier,
-            first_name=consent.first_name,
-            initials=consent.initials)._asdict()
+        options = {'subject_identifier': consent.subject_identifier,
+                   'first_name': consent.first_name,
+                   'initials': consent.initials}
+        try:
+            consent_foreignkey = getattr(consent, self.consent_model_subject_foreignkey)
+            options.update({self.consent_model_subject_foreignkey: consent_foreignkey})
+        except AttributeError:
+            pass
+        return options
 
     def schedule_call(self, instance, scheduled=None):
         """Schedules a call by creating a new call instance and creates the corresponding Log instance."""
@@ -124,9 +166,9 @@ class ModelCaller:
         for this subject and model caller.
 
         Only updates call if this is the most recent log_entry."""
-        log_entries = LogEntry.objects.filter(log=log_entry.log).order_by('-call_datetime')
+        log_entries = self.log_entry_model.objects.filter(log=log_entry.log).order_by('-call_datetime')
         if log_entry.pk == log_entries[0].pk:
-            call = Call.objects.get(pk=call.pk)
+            call = self.call_model.objects.get(pk=call.pk)
             if call.call_status == CLOSED:
                 raise ValueError('Call is unexpectedly closed.')
             call.call_outcome = '. '.join(log_entry.outcome)

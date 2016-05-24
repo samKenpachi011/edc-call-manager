@@ -30,6 +30,7 @@ class CallerSite:
     def register(self, model, caller_class):
 
         if model not in self.scheduling_models:
+            print(' * registered model caller {}'.format(str(caller_class)))
             caller = caller_class(model)
             self.scheduling_models.update({model: caller})
             self.model_callers.update({caller.label: caller})
@@ -88,11 +89,13 @@ class CallerSite:
 
     def autodiscover(self):
         """ Autodiscover rules from a model_callers module."""
+        print('Loading call manager')
         for app in settings.INSTALLED_APPS:
             mod = import_module(app)
             try:
                 before_import_registry = copy.copy(site_model_callers._registry)
                 import_module('%s.model_callers' % app)
+                print(' * found model caller in {}'.format(app))
             except:
                 site_model_callers._registry = before_import_registry
                 if module_has_submodule(mod, 'model_callers'):
