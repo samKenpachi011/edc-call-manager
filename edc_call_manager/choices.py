@@ -1,7 +1,10 @@
+from .constants import NO_CONTACT
+
+
 CONTACT_TYPE = (
     ('direct', 'Direct contact with participant'),
     ('indirect', 'Contact with person other than participant'),
-    ('no_contact', 'No contact made'),
+    (NO_CONTACT, 'No contact made'),
 )
 
 APPT_LOCATIONS = (

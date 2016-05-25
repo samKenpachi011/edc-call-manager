@@ -1,5 +1,6 @@
 from datetime import date
 
+from django.utils import timezone
 from django.core.validators import RegexValidator
 from django.db import models
 from django.db.models.signals import post_save
@@ -14,7 +15,6 @@ from edc_constants.constants import YES, CLOSED, OPEN, NEW, DEAD, NO, ALIVE
 
 from .choices import CONTACT_TYPE, APPT_GRADING, APPT_LOCATIONS
 from .caller_site import site_model_callers
-from django.utils import timezone
 
 
 class CallModelMixin(models.Model):
