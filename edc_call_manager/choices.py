@@ -1,9 +1,9 @@
-from .constants import NO_CONTACT
+from .constants import NO_CONTACT, DIRECT_CONTACT, INDIRECT_CONTACT
 
 
 CONTACT_TYPE = (
-    ('direct', 'Direct contact with participant'),
-    ('indirect', 'Contact with person other than participant'),
+    (DIRECT_CONTACT, 'Direct contact with participant'),
+    (INDIRECT_CONTACT, 'Contact with person other than participant'),
     (NO_CONTACT, 'No contact made'),
 )
 

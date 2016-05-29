@@ -19,7 +19,7 @@ class CallManagerAdminSite(AdminSite):
     site_header = 'Call Manager'
     site_title = 'Call Manager'
     index_title = 'Call Manager Administration'
-    site_url = '/call_manager/'
+    site_url = '/'
 call_manager_admin = CallManagerAdminSite(name='call_manager_admin')
 
 
@@ -81,7 +81,6 @@ class ModelAdminLogEntryInlineMixin(object):
 
     fields = (
         'call_datetime',
-        'invalid_numbers',
         'contact_type',
         'time_of_week',
         'time_of_day',
@@ -90,7 +89,7 @@ class ModelAdminLogEntryInlineMixin(object):
         'appt_grading',
         'appt_location',
         'appt_location_other',
-        'call_again',
+        'may_call',
     )
 
     radio_fields = {
@@ -100,7 +99,7 @@ class ModelAdminLogEntryInlineMixin(object):
         "appt": admin.VERTICAL,
         "appt_grading": admin.VERTICAL,
         "appt_location": admin.VERTICAL,
-        "call_again": admin.VERTICAL,
+        "may_call": admin.VERTICAL,
     }
 
 
@@ -134,8 +133,8 @@ class ModelAdminLogEntryMixin(object):
 
     fields = (
         'log',
+        'call_reason',
         'call_datetime',
-        'invalid_numbers',
         'contact_type',
         'time_of_week',
         'time_of_day',
@@ -144,7 +143,7 @@ class ModelAdminLogEntryMixin(object):
         'appt_grading',
         'appt_location',
         'appt_location_other',
-        'call_again',
+        'may_call',
     )
 
     radio_fields = {
@@ -154,7 +153,7 @@ class ModelAdminLogEntryMixin(object):
         "appt": admin.VERTICAL,
         "appt_grading": admin.VERTICAL,
         "appt_location": admin.VERTICAL,
-        "call_again": admin.VERTICAL,
+        "may_call": admin.VERTICAL,
     }
 
     list_display = (
@@ -162,21 +161,21 @@ class ModelAdminLogEntryMixin(object):
         'call_datetime',
         'appt',
         'appt_date',
-        'call_again',
+        'may_call',
     )
 
     list_filter = (
         'call_datetime',
         'appt',
         'appt_date',
-        'call_again',
+        'may_call',
         'created',
         'modified',
         'hostname_created',
         'hostname_modified',
     )
 
-    search_fields = ('call_log__call_list__first_name', 'id')
+    search_fields = ('id', 'log__call__subject_identifier')
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         if db_field.name == "log":

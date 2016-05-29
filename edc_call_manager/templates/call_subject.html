@@ -1,0 +1,139 @@
+{% extends "base.html" %}
+{% load staticfiles %}
+{% load crispy_forms_tags %}
+
+{% block extra-css %}
+    <link href="{% static "css/datetimepicker/datetimepicker.css" %}" rel="stylesheet" type="text/css" >
+{% endblock extra-css %}
+
+{% block extra-scripts %}
+    <script type="text/javascript" charset="utf8" src="{% static "js/bootstrap-datetimepicker.min.js" %}"></script>
+{% endblock extra-scripts %}
+
+
+{% block main %}
+<p></p>
+
+<div id="div-home" class="col-md-8">
+    <div class="panel panel-default">
+        <div class="panel-heading">{{ label|title }} <span class="pull-right">Call Status: {{ call_status }}</span></div>
+        <div class="panel-body">
+            <div class="alert alert-warning" id="id-call-closed" style="display:none">
+                <strong>This call is closed.</strong>
+            </div>
+            <div class="alert alert-info" id="id-instructions" style="display:none">
+                {{ instructions }}
+            </div>
+            <div class="alert alert-warning" id="id-do-not-call-warning" style="display:none">
+                <strong>Do not call</strong> this client. See client's contact history.
+            </div>
+            {% crispy form %}
+        </div>
+    </div>
+</div>
+
+<div id="div-home" class="col-md-4">
+    <div class="panel panel-default">
+        <div class="panel-heading">Subject <span class="pull-right">{{ subject_identifier }}</span></div>
+        <div class="panel-body">
+        {{ name|default:'name?' }}</br>
+        <b>Age: </b>{{ age|default:'age?' }} <b>Gender: </b>{{ gender|default:'gender?' }}
+        </div>
+    </div>
+
+
+    <div class="panel panel-default">
+        <div class="panel-heading">Subject Contacts</div>
+            <div class="panel-body">
+            <ul class="nav nav-pills nav-stacked">
+                <li role="presentation"><b>Cell</b>: {{ contact_information.subject_cell }}</li>
+                <li role="presentation"><b>May SMS?</b>: {{ contact_information.may_sms_follow_up }}</li>
+                <li role="presentation"><b>Phone</b>: {{ contact_information.subject_phone }}</li>
+                <li role="presentation"><b>Address</b>: {{ contact_information.physical_address }}</li>
+            </ul>
+        </div>
+        {% if contact_information.contact_name %}
+            <div class="panel-heading">Other Contacts</div>
+                <div class="panel-body">
+                <ul class="nav nav-pills nav-stacked">
+                    <li role="presentation">{{ contact_information.contact_name }}</li>
+                    <li role="presentation">{{ contact_information.contact_cell }}</li>
+                    <li role="presentation">{{ contact_information.contact_relation|default:'relation unknown' }}</li>
+                </ul>
+            </div>
+        {% endif %}
+    </div>
+
+    <div class="panel panel-default">
+        <div class="panel-heading">Appointments</div>
+        <div class="panel-body">
+            {% for appt in appointments %}
+                {{ appt.appt_date }} {{ appt.appt_grading }}</br>
+            {% endfor%}
+        </div>
+    </div>
+    <div class="panel panel-default">
+        <div class="panel-heading">Contact History</div>
+        <div class="panel-body">
+        Attempts: {{ attempts|default:'0' }} (direct: {{ direct_contact|default:'0' }}, indirect: {{ indirect_contact|default:'0' }})</br>
+        <ul class="nav nav-pills nav-stacked">
+        {%if contact_history %}
+            {% for obj in contact_history %}
+                <li role="presentation">
+                  <a href="{% url 'call_manager:call-subject-update' caller_app=caller_app caller_model=caller_model log_pk=obj.log.pk|lower pk=obj.pk|lower %}">{{ obj.call_datetime|date:'Y-m-d H:i' }}{% if obj.may_call == 'No' %}: Do not call{% endif %} {% if obj.appt_date %}Appointment {{ obj.appt_date|date:'Y-m-d' }} ({{ obj.appt_grading }}) {% endif %}</a>
+                </li>
+            {% endfor %}
+        {% else %}
+            not yet contacted
+        {% endif %} 
+        </ul>
+        </div>
+    </div>
+
+
+</div>
+
+{% endblock main%}
+
+{% block extra-scripts-bottom %}
+{{ block.super }}
+<script type="text/javascript" charset="utf8" src="{% static "js/edc_call_manager.js" %}"></script>
+
+<script type="text/javascript" charset="utf8" class="init">
+
+$(document).ready( function () {
+
+  setFormControls();
+    
+  updateContacted();
+    
+  updateAppointment();
+    
+  if ('{{ do_not_call }}' == 'True') {
+    $('#id-do-not-call-warning').show();
+  } else {
+    $('#id-do-not-call-warning').hide();
+  }
+
+});
+
+function setFormControls() {
+  $('.datetimepicker').datetimepicker({
+    autoclose: true,
+    todayBtn: 'linked',
+  });
+
+  $('#button-id-cancel-log-entry').click( function(e) {
+    window.location='{{ next_url }}';
+    return true;
+  });
+  if ( '{{ show_instructions }}' == 'True' && '{{ call_closed }}' == 'False'){
+    $('#id-instructions').show();
+  };
+  if ( '{{ call_closed }}' == 'True'){
+    $('#id-call-closed').show();
+  };
+}    
+</script>    
+{% endblock extra-scripts-bottom %}
+    

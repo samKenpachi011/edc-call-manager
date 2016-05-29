@@ -1,7 +1,6 @@
 from datetime import date
 
 from django.utils import timezone
-from django.core.validators import RegexValidator
 from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
@@ -10,11 +9,22 @@ from simple_history.models import HistoricalRecords as AuditTrail
 
 from edc_base.model.fields import OtherCharField
 from edc_base.model.validators import datetime_not_future, datetime_not_before_study_start, date_is_future
-from edc_constants.choices import YES_NO_UNKNOWN, TIME_OF_DAY, TIME_OF_WEEK, YES_NO, ALIVE_DEAD_UNKNOWN
+from edc_constants.choices import YES_NO_UNKNOWN, TIME_OF_DAY, TIME_OF_WEEK, ALIVE_DEAD_UNKNOWN
 from edc_constants.constants import YES, CLOSED, OPEN, NEW, DEAD, NO, ALIVE
 
 from .choices import CONTACT_TYPE, APPT_GRADING, APPT_LOCATIONS
 from .caller_site import site_model_callers
+
+MAY_CALL = (
+    (YES, 'Yes, we may continue to contact the participant.'),
+    (NO, 'No, participant has asked NOT to be contacted again.'),
+)
+
+CALL_REASONS = (
+    ('schedule_appt', 'Schedule an appointment'),
+    ('reminder', 'Remind participant of scheduled appointment'),
+    ('missed_appt', 'Follow-up with participant on missed appointment'),
+)
 
 
 class CallModelMixin(models.Model):
@@ -120,17 +130,14 @@ class LogModelMixin(models.Model):
 
 class LogEntryModelMixin (models.Model):
 
-    call_datetime = models.DateTimeField()
+    call_reason = models.CharField(
+        verbose_name='Reason for this call',
+        max_length=25,
+        choices=CALL_REASONS,
+    )
 
-    invalid_numbers = models.CharField(
-        verbose_name='Indicate any invalid numbers dialed from the locator information above?',
-        max_length=50,
-        validators=[RegexValidator(
-            regex=r'^[0-9]{7,8}(,[0-9]{7,8})*$',
-            message='Only enter contact numbers separated by commas. No spaces and no trailing comma.'), ],
-        null=True,
-        blank=True,
-        help_text='Separate by comma (,).')
+    call_datetime = models.DateTimeField(
+        verbose_name='Date of this call')
 
     contact_type = models.CharField(
         max_length=15,
@@ -140,7 +147,9 @@ class LogEntryModelMixin (models.Model):
     survival_status = models.CharField(
         verbose_name='Survival status of the participant',
         max_length=10,
-        choices=ALIVE_DEAD_UNKNOWN)
+        choices=ALIVE_DEAD_UNKNOWN,
+        blank=True,
+        null=True)
 
     time_of_week = models.CharField(
         verbose_name='Time of week when participant will be available',
@@ -185,7 +194,7 @@ class LogEntryModelMixin (models.Model):
         blank=True)
 
     appt_location_other = OtherCharField(
-        verbose_name='Appointment location',
+        verbose_name='Other location, please specify ...',
         max_length=50,
         null=True,
         blank=True)
@@ -194,13 +203,29 @@ class LogEntryModelMixin (models.Model):
         default=False,
         editable=False)
 
-    call_again = models.CharField(
-        verbose_name='Call the participant again?',
+    may_call = models.CharField(
+        verbose_name='May we continue to contact the participant?',
         max_length=10,
-        choices=YES_NO,
-        default=YES)
+        choices=MAY_CALL,
+        default=YES,
+        null=True,
+        blank=True)
 
     history = AuditTrail()
+
+#     def get_absolute_url(self):
+#         return reverse('log_entry', kwargs={'pk': self.pk})
+
+    @property
+    def subject(self):
+        """Override to return the FK attribute to the subject.
+
+        expects any model instance with fields ['first_name', 'last_name', 'gender', 'dob'].
+
+        For example: self.registered_subject.
+
+        See also: CallSubjectViewMixin.get_context_data()"""
+        return None
 
     def natural_key(self):
         return (self.call_datetime, ) + self.log.natural_key()
@@ -208,7 +233,7 @@ class LogEntryModelMixin (models.Model):
 
     def save(self, *args, **kwargs):
         if self.survival_status == DEAD:
-            self.call_again = NO
+            self.may_call = NO
         super(LogEntryModelMixin, self).save(*args, **kwargs)
 
     @property
@@ -218,9 +243,7 @@ class LogEntryModelMixin (models.Model):
             outcome.append('Appt. scheduled')
         if self.survival_status in [ALIVE, DEAD]:
             outcome.append('Alive' if ALIVE else 'Deceased')
-        if self.call_again == YES:
-            outcome.append('Call again')
-        elif self.call_again == NO:
+        elif self.may_call == NO:
             outcome.append('Do not call')
         return outcome
 

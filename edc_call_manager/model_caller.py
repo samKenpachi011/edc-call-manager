@@ -1,7 +1,7 @@
 from datetime import date
 from dateutil.relativedelta import relativedelta
 
-from django.core.exceptions import MultipleObjectsReturned, ImproperlyConfigured
+from django.core.exceptions import MultipleObjectsReturned, ImproperlyConfigured, ValidationError
 from django.utils import timezone
 from django.utils.text import slugify
 
@@ -170,11 +170,11 @@ class ModelCaller:
         if log_entry.pk == log_entries[0].pk:
             call = self.call_model.objects.get(pk=call.pk)
             if call.call_status == CLOSED:
-                raise ValueError('Call is unexpectedly closed.')
+                raise ValidationError('Call is closed. Perhaps catch this in the form.')
             call.call_outcome = '. '.join(log_entry.outcome)
             call.call_datetime = log_entry.call_datetime
             call.call_attempts = log_entries.count()
-            if log_entry.call_again == YES:
+            if log_entry.may_call == YES:
                 call.call_status = OPEN
             else:
                 call.call_status = CLOSED

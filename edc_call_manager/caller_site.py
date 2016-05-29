@@ -1,5 +1,6 @@
 import copy
 
+from django.apps import apps as django_apps
 from django.conf import settings
 from django.utils.module_loading import import_module
 from django.utils.module_loading import module_has_submodule
@@ -49,6 +50,10 @@ class CallerSite:
         self._registry = dict(scheduling_models={}, unscheduling_models={}, model_callers={})
 
     def get_model_caller(self, model):
+        try:
+            model = django_apps.get_model(*model)
+        except (LookupError, TypeError, AttributeError):
+            pass
         try:
             model_caller = self.scheduling_models[model]
         except KeyError:
