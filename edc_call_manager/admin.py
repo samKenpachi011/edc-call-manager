@@ -2,7 +2,8 @@ from django.contrib import admin
 from django.contrib.admin import AdminSite
 from django.apps import apps as django_apps
 
-from edc_base.modeladmin.mixins import ModelAdminBasicMixin
+from edc_base.modeladmin.mixins import ModelAdminBasicMixin, ModelAdminChangelistButtonMixin
+from edc_constants.constants import NEW, OPEN
 
 from .actions import call_participant
 
@@ -23,7 +24,10 @@ class CallManagerAdminSite(AdminSite):
 call_manager_admin = CallManagerAdminSite(name='call_manager_admin')
 
 
-class ModelAdminCallMixin(ModelAdminBasicMixin):
+class ModelAdminCallMixin(ModelAdminChangelistButtonMixin, ModelAdminBasicMixin):
+
+    subject_app = 'registration'
+    subject_model = 'registeredsubject'
 
     date_hierarchy = 'modified'
 
@@ -39,13 +43,13 @@ class ModelAdminCallMixin(ModelAdminBasicMixin):
 
     mixin_list_display = (
         'subject_identifier',
+        'call_button',
+        'call_attempts',
+        'call_outcome',
         'scheduled',
         'label',
         'first_name',
         'initials',
-        'call_attempts',
-        'call_status',
-        'call_outcome',
         'user_created',
     )
 
@@ -62,6 +66,20 @@ class ModelAdminCallMixin(ModelAdminBasicMixin):
     )
 
     mixin_search_fields = ('subject_identifier', 'initials')
+
+    def call_button(self, obj):
+        Log = django_apps.get_model('call_manager', 'log')
+        log = Log.objects.get(call=obj)
+        if obj.call_status == NEW:
+            change_label = 'New&nbsp;Call'.format(obj.call_attempts)
+        elif obj.call_status == OPEN:
+            change_label = 'Open&nbsp;Call'.format(obj.call_attempts)
+        else:
+            change_label = 'Closed&nbsp;Call'
+        return self.change_button(
+            'call-subject-add', (self.subject_app, self.subject_model, str(log.pk), ),
+            label=change_label, namespace='call_manager')
+    call_button.short_description = 'call'
 
 
 class ModelAdminLogEntryInlineMixin(object):
@@ -114,9 +132,24 @@ class ModelAdminLogMixin(ModelAdminBasicMixin):
         '(give participant name) who gave us this number as a means to contact them. Do you know '
         'how we can contact this person directly? This may be a phone number or a physical address.']
 
+    redirect_app_label = 'call_manager'
+    redirect_model_name = 'call'
+    redirect_search_field = 'call__subject_identifier'
+    redirect_namespace = 'call_manager_admin'
+
     mixin_fields = ("call", 'locator_information', 'contact_notes')
 
-    # inlines = [LogEntryAdminInline, ]
+    readonly_fields = ('call', )
+
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if db_field.name == "call":
+            Call = django_apps.get_model('call_manager', 'call')
+            try:
+                call = Call.objects.get(pk=request.GET.get('call'))
+                kwargs["queryset"] = [call]
+            except Call.DoesNotExist:
+                pass
+        return super(ModelAdminLogMixin, self).formfield_for_foreignkey(db_field, request, **kwargs)
 
 
 class ModelAdminLogEntryMixin(object):
