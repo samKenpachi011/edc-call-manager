@@ -1,6 +1,5 @@
 from itertools import chain
 
-from django.contrib import messages
 from django.apps import apps as django_apps
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
