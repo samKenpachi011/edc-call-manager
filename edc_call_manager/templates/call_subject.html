@@ -57,8 +57,8 @@
             {% endif %}
         </div>
         <div class="panel-heading">Other Contacts</div>
+            <div class="panel-body">
             {% if contact_information.contact_name %}
-                <div class="panel-body">
                 <ul class="nav nav-pills nav-stacked">
                     <li role="presentation">{{ contact_information.contact_name }}</li>
                     <li role="presentation">{{ contact_information.contact_cell }}</li>
@@ -67,6 +67,7 @@
             {% else %}
                 {{ contact_information.contact_name|default:'<i>unavailable</i>' }}        
             {% endif %}
+            </div>
         </div>
     </div>
 
