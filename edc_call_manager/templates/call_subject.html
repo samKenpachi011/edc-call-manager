@@ -42,7 +42,7 @@
     </div>
 
 
-    <div class="panel panel-default">
+    <div id='div-subject-contacts' class="panel panel-default">
         <div class="panel-heading">Subject Contacts</div>
             <div class="panel-body">
              {% if contact_information %}
@@ -56,6 +56,7 @@
                 {{ contact_information|default:'not contact information' }}        
             {% endif %}
         </div>
+
         <div class="panel-heading">Other Contacts</div>
             <div class="panel-body">
             {% if contact_information.contact_name %}
@@ -68,18 +69,19 @@
                 {{ contact_information.contact_name|default:'<i>unavailable</i>' }}        
             {% endif %}
             </div>
-        </div>
-    </div>
 
-    <div class="panel panel-default">
+    </div>  <!-- div-subject-contacts -->
+
+    <div id="div-appointments" class="panel panel-default">
         <div class="panel-heading">Appointments</div>
         <div class="panel-body">
             {% for appt in appointments %}
                 {{ appt.appt_date }} {{ appt.appt_grading }}</br>
             {% endfor%}
         </div>
-    </div>
-    <div class="panel panel-default">
+    </div>   <!-- div-appointments -->
+
+    <div id="div-contact-history" class="panel panel-default">
         <div class="panel-heading">Contact History</div>
         <div class="panel-body">
         Attempts: {{ attempts|default:'0' }} (direct: {{ direct_contact|default:'0' }}, indirect: {{ indirect_contact|default:'0' }})</br>
@@ -95,10 +97,10 @@
         {% endif %} 
         </ul>
         </div>
-    </div>
+    </div>    <!-- div-contact-history -->
 
 
-</div>
+</div> <!-- div-home -->
 
 {% endblock main%}
 
