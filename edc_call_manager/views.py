@@ -109,9 +109,9 @@ class CallSubjectViewMixin:
     def get_contact_information(self):
         try:
             contact_information = self.locator_model.objects.get(
-                **{self.locator_filter: self.log.call.subject}).to_dict()
+                **{self.locator_filter: self.log.call.subject.subject_identifier}).to_dict()
         except self.locator_model.DoesNotExist:
-            contact_information = 'no contact information'
+            contact_information = None
         return contact_information
 
     @property
@@ -169,7 +169,7 @@ class CallSubjectUpdateView(CallSubjectViewMixin, AuditFieldsMixin, UpdateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['label'] = 'Update Call Log Entry'
+        context['label'] = 'Change Call Log Entry'
         return context
 
     def form_valid(self, form):

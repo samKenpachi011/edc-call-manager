@@ -45,23 +45,29 @@
     <div class="panel panel-default">
         <div class="panel-heading">Subject Contacts</div>
             <div class="panel-body">
-            <ul class="nav nav-pills nav-stacked">
-                <li role="presentation"><b>Cell</b>: {{ contact_information.subject_cell }}</li>
-                <li role="presentation"><b>May SMS?</b>: {{ contact_information.may_sms_follow_up }}</li>
-                <li role="presentation"><b>Phone</b>: {{ contact_information.subject_phone }}</li>
-                <li role="presentation"><b>Address</b>: {{ contact_information.physical_address }}</li>
-            </ul>
+             {% if contact_information %}
+                <ul class="nav nav-pills nav-stacked">
+                    <li role="presentation"><b>Cell</b>: {{ contact_information.subject_cell }}</li>
+                    <li role="presentation"><b>May SMS?</b>: {{ contact_information.may_sms_follow_up }}</li>
+                    <li role="presentation"><b>Phone</b>: {{ contact_information.subject_phone|default:'<i>unavailable</i>' }}</li>
+                    <li role="presentation"><b>Address</b>: {{ contact_information.physical_address }}</li>
+                </ul>
+            {% else %}
+                {{ contact_information|default:'not contact information' }}        
+            {% endif %}
         </div>
-        {% if contact_information.contact_name %}
-            <div class="panel-heading">Other Contacts</div>
+        <div class="panel-heading">Other Contacts</div>
+            {% if contact_information.contact_name %}
                 <div class="panel-body">
                 <ul class="nav nav-pills nav-stacked">
                     <li role="presentation">{{ contact_information.contact_name }}</li>
                     <li role="presentation">{{ contact_information.contact_cell }}</li>
                     <li role="presentation">{{ contact_information.contact_relation|default:'relation unknown' }}</li>
                 </ul>
-            </div>
-        {% endif %}
+            {% else %}
+                {{ contact_information.contact_name|default:'<i>unavailable</i>' }}        
+            {% endif %}
+        </div>
     </div>
 
     <div class="panel panel-default">
@@ -80,7 +86,7 @@
         {%if contact_history %}
             {% for obj in contact_history %}
                 <li role="presentation">
-                  <a href="{% url 'call_manager:call-subject-update' caller_app=caller_app caller_model=caller_model log_pk=obj.log.pk|lower pk=obj.pk|lower %}">{{ obj.call_datetime|date:'Y-m-d H:i' }}{% if obj.may_call == 'No' %}: Do not call{% endif %} {% if obj.appt_date %}Appointment {{ obj.appt_date|date:'Y-m-d' }} ({{ obj.appt_grading }}) {% endif %}</a>
+                  <a href="{% url 'call_manager:call-subject-update' caller_app=caller_app caller_model=caller_model log_pk=obj.log.pk|lower pk=obj.pk|lower %}">{{ obj.call_datetime|date:'Y-m-d H:i' }}{% if obj.may_call == 'No' %}: Do not call{% else %} {{ obj.get_contact_type_display }} {% if obj.appt == 'No' %} <i>No appt. scheduled</i> {% endif %}{% endif %} {% if obj.appt_date %}Appointment {{ obj.appt_date|date:'Y-m-d' }} ({{ obj.appt_grading }}) {% endif %}</a>
                 </li>
             {% endfor %}
         {% else %}
@@ -108,6 +114,8 @@ $(document).ready( function () {
   updateContacted();
     
   updateAppointment();
+  
+  updateOtherLocation();
     
   if ('{{ do_not_call }}' == 'True') {
     $('#id-do-not-call-warning').show();
