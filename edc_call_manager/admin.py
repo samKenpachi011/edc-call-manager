@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.contrib.admin import AdminSite
 from django.apps import apps as django_apps
 
-from edc_base.modeladmin.mixins import ModelAdminBasicMixin, ModelAdminChangelistButtonMixin
+from edc_base.modeladmin.mixins import ModelAdminBasicMixin, ModelAdminChangelistModelButtonMixin
 from edc_constants.constants import NEW, OPEN
 
 from .actions import call_participant
@@ -24,7 +24,7 @@ class CallManagerAdminSite(AdminSite):
 call_manager_admin = CallManagerAdminSite(name='call_manager_admin')
 
 
-class ModelAdminCallMixin(ModelAdminChangelistButtonMixin, ModelAdminBasicMixin):
+class ModelAdminCallMixin(ModelAdminChangelistModelButtonMixin, ModelAdminBasicMixin):
 
     subject_app = 'registration'
     subject_model = 'registeredsubject'
@@ -41,6 +41,7 @@ class ModelAdminCallMixin(ModelAdminChangelistButtonMixin, ModelAdminBasicMixin)
 
     mixin_radio_fields = {'call_status': admin.VERTICAL}
 
+    list_display_pos = None
     mixin_list_display = (
         'subject_identifier',
         'call_button',

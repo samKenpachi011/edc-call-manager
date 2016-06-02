@@ -6,7 +6,7 @@ pytz
 django-simple-history
 django_extensions==1.6.1
 pycrypto
-
+aiohttp
 factory-boy
 -e ~/source/edc-locator
 
