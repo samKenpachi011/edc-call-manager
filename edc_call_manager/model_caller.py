@@ -133,6 +133,13 @@ class ModelCaller:
             pass
         return options
 
+    def call_model_fk_value(self, instance):
+        try:
+            call_model_fk_value = getattr(instance, self.call_model_fk)
+        except AttributeError:
+            call_model_fk_value = instance
+        return call_model_fk_value
+
     def schedule_call(self, instance, scheduled=None):
         """Schedules a call by creating a new call instance and creates the corresponding Log instance."""
         if self.consent_model:
@@ -140,7 +147,7 @@ class ModelCaller:
         else:
             options = self.personal_details(instance)
         options.update({
-            self.call_model_fk: getattr(instance, self.call_model_fk)
+            self.call_model_fk: self.call_model_fk_value(instance)
         })
         call = self.call_model.objects.create(
             scheduled=scheduled or date.today(),
@@ -154,7 +161,7 @@ class ModelCaller:
     def unschedule_call(self, instance):
         """Unschedules any calls for this subject and model caller."""
         options = {
-            self.call_model_fk: getattr(instance, self.call_model_fk)
+            self.call_model_fk: self.call_model_fk_value(instance)
         }
         self.call_model.objects.filter(
             subject_identifier=instance.subject_identifier,
