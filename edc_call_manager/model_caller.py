@@ -22,14 +22,14 @@ class ModelCaller:
 
     This class gets registered to site_model_callers and the activity of it's Scheduling and Unscheduling
     models is inspected in signals.
-    """
 
+    """
     consent_model = None
-    consent_model_subject_foreignkey = None
+    consent_model_fk = None
     locator_model = None
     locator_filter = 'subject_identifier'
     call_model = None  # e.g. Call
-    call_model_subject_foreignkey = 'registered_subject'  # must also be a FK on the model registered with
+    call_model_fk = 'registered_subject'  # must also be a FK on the model registered with
     log_model = None  # e.g. Log
     log_entry_model = None  # e.g. LogEntry
     interval = None
@@ -41,29 +41,29 @@ class ModelCaller:
         self.model = model
         call_model = call_model or self.call_model
         try:
-            self.call_model, self.call_model_subject_foreignkey = self.call_model
+            self.call_model, self.call_model_fk = self.call_model
         except TypeError:
             self.call_model = call_model or self.call_model
         try:
-            self.consent_model, self.consent_model_subject_foreignkey = self.consent_model
+            self.consent_model, self.consent_model_fk = self.consent_model
         except TypeError:
             pass
         try:
             self.locator_model, self.locator_filter = self.locator_model
         except TypeError:
             pass
-        if self.call_model_subject_foreignkey:
-            if not [fld.name for fld in self.call_model._meta.fields if fld.name in [self.call_model_subject_foreignkey]]:
+        if self.call_model_fk:
+            if not [fld.name for fld in self.call_model._meta.fields if fld.name in [self.call_model_fk]]:
                 raise ImproperlyConfigured(
-                    'ModelCaller model \'{}.{}\' does not have field \'{}\'. See {} declaration for attribute call_model_subject_foreignkey.'.format(
+                    'ModelCaller model \'{}.{}\' does not have field \'{}\'. See {} declaration for attribute call_model_fk.'.format(
                         self.call_model._meta.app_label, self.call_model._meta.model_name,
-                        self.call_model_subject_foreignkey, self.__class__.__name__))
-        if self.consent_model and self.consent_model_subject_foreignkey:
-            if not [fld.name for fld in self.consent_model._meta.fields if fld.name in [self.consent_model_subject_foreignkey]]:
+                        self.call_model_fk, self.__class__.__name__))
+        if self.consent_model and self.consent_model_fk:
+            if not [fld.name for fld in self.consent_model._meta.fields if fld.name in [self.consent_model_fk]]:
                 raise ImproperlyConfigured(
-                    'ModelCaller model \'{}.{}\' does not have field \'{}\'. See {} declaration for attribute consent_model_subject_foreignkey.'.format(
+                    'ModelCaller model \'{}.{}\' does not have field \'{}\'. See {} declaration for attribute consent_model_fk.'.format(
                         self.consent_model._meta.app_label, self.consent_model._meta.model_name,
-                        self.consent_model_subject_foreignkey,
+                        self.consent_model_fk,
                         self.__class__.__name__))
         self.log_model = log_model or self.log_model
         self.log_entry_model = log_entry_model or self.log_entry_model
@@ -85,17 +85,17 @@ class ModelCaller:
     def subject_foreignkey(self, instance):
         """Return the FK on the model the model_caller was registered with."""
         subject_foreignkey = None
-        if ''.join(self.call_model_subject_foreignkey.split('_')) == instance._meta.model_name:
+        if ''.join(self.call_model_fk.split('_')) == instance._meta.model_name:
             subject_foreignkey = instance
         else:
             try:
-                subject_foreignkey = getattr(instance, self.call_model_subject_foreignkey)
+                subject_foreignkey = getattr(instance, self.call_model_fk)
             except AttributeError as e:
                 raise ModelCallerError(
                     'Model Caller was registered with model \'{}\'. Model requires '
                     'FK to \'{}\' unless specified otherwise with attr \'call_model_subject_'
                     'foreignkey\'. Got {}'.format(
-                        self.model, self.call_model_subject_foreignkey, str(e)))
+                        self.model, self.call_model_fk, str(e)))
         return subject_foreignkey
 
     def personal_details(self, instance):
@@ -105,8 +105,8 @@ class ModelCaller:
         options = {'subject_identifier': instance.subject_identifier,
                    'first_name': self.get_value(instance, 'first_name'),
                    'initials': self.get_value(instance, 'initials')}
-        if self.call_model_subject_foreignkey:
-            options.update({self.call_model_subject_foreignkey: self.subject_foreignkey(instance)})
+        if self.call_model_fk:
+            options.update({self.call_model_fk: self.subject_foreignkey(instance)})
         return options
 
     def personal_details_from_consent(self, instance):
@@ -127,8 +127,8 @@ class ModelCaller:
                    'first_name': consent.first_name,
                    'initials': consent.initials}
         try:
-            consent_foreignkey = getattr(consent, self.consent_model_subject_foreignkey)
-            options.update({self.consent_model_subject_foreignkey: consent_foreignkey})
+            consent_foreignkey = getattr(consent, self.consent_model_fk)
+            options.update({self.consent_model_fk: consent_foreignkey})
         except AttributeError:
             pass
         return options
@@ -140,7 +140,7 @@ class ModelCaller:
         else:
             options = self.personal_details(instance)
         options.update({
-            self.call_model_subject_foreignkey: getattr(instance, self.call_model_subject_foreignkey)
+            self.call_model_fk: getattr(instance, self.call_model_fk)
         })
         call = self.call_model.objects.create(
             scheduled=scheduled or date.today(),
@@ -154,7 +154,7 @@ class ModelCaller:
     def unschedule_call(self, instance):
         """Unschedules any calls for this subject and model caller."""
         options = {
-            self.call_model_subject_foreignkey: getattr(instance, self.call_model_subject_foreignkey)
+            self.call_model_fk: getattr(instance, self.call_model_fk)
         }
         self.call_model.objects.filter(
             subject_identifier=instance.subject_identifier,

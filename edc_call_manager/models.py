@@ -213,9 +213,6 @@ class LogEntryModelMixin (models.Model):
 
     history = AuditTrail()
 
-#     def get_absolute_url(self):
-#         return reverse('log_entry', kwargs={'pk': self.pk})
-
     @property
     def subject(self):
         """Override to return the FK attribute to the subject.

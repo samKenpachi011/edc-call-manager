@@ -58,21 +58,24 @@ class CallerSite:
 
     def verify_model(self, model, caller):
         """Confirm model has required FK."""
-        try:
-            getattr(model, caller.call_model_subject_foreignkey)
-        except AttributeError as e:
-            raise ModelCallerError(
-                'Model Caller was registered with model \'{}\'. Model requires '
-                'FK to \'{}\'. Got {}'.format(
-                    model, caller.call_model_subject_foreignkey, str(e)))
+        if ''.join(caller.call_model_fk.split('_')) == model._meta.model_name:
+            pass
+        else:
+            try:
+                getattr(model, caller.call_model_fk)
+            except AttributeError as e:
+                raise ModelCallerError(
+                    'Model Caller was registered with model \'{}\'. Model requires '
+                    'FK to \'{}\'. Got {}'.format(
+                        model, caller.call_model_fk, str(e)))
         if caller.unscheduling_model:
             try:
-                getattr(caller.unscheduling_model, caller.call_model_subject_foreignkey)
+                getattr(caller.unscheduling_model, caller.call_model_fk)
             except AttributeError as e:
                 raise ModelCallerError(
                     'Model Caller was registered with unscheduling model \'{}\'. Model requires '
                     'FK to \'{}\'. Got {}'.format(
-                        caller.unscheduling_model, caller.call_model_subject_foreignkey, str(e)))
+                        caller.unscheduling_model, caller.call_model_fk, str(e)))
 
     def reset_registry(self):
         self._registry = dict(scheduling_models={}, unscheduling_models={}, model_callers={})
