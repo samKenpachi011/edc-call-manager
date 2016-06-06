@@ -1,6 +1,8 @@
 import copy
+import sys
 
 from django.apps import apps as django_apps
+from django.core.management.color import color_style
 from django.utils.module_loading import import_module
 from django.utils.module_loading import module_has_submodule
 
@@ -14,6 +16,7 @@ class CallerSite:
     def __init__(self):
         self._registry = {}
         self.reset_registry()
+        self.style = color_style()
 
     @property
     def scheduling_models(self):
@@ -30,7 +33,7 @@ class CallerSite:
     def register(self, model, caller_class):
 
         if model not in self.scheduling_models:
-            print(' * registered model caller {}'.format(str(caller_class)))
+            sys.stdout.write(' * registered model caller \'{}\'\n'.format(str(caller_class)))
             caller = caller_class(model)
             self.scheduling_models.update({model: caller})
             self.model_callers.update({caller.label: caller})
@@ -94,14 +97,13 @@ class CallerSite:
     def autodiscover(self, module_name=None):
         """ Autodiscover rules from a model_callers module."""
         module_name = module_name or 'model_callers'
-        print('Checking for site {} ...'.format(module_name))
+        sys.stdout.write(' * checking for site {} ...\n'.format(module_name))
         for app in django_apps.app_configs:
             try:
                 mod = import_module(app)
                 try:
                     before_import_registry = copy.copy(site_model_callers._registry)
                     import_module('{}.{}'.format(app, module_name))
-                    print(' * found {} in {}'.format(module_name, app))
                 except:
                     site_model_callers._registry = before_import_registry
                     if module_has_submodule(mod, module_name):
