@@ -9,7 +9,7 @@ from edc_constants.constants import CLOSED, OTHER, YES
 
 class LogEntryForm(CrispyFormMixin, forms.ModelForm):
 
-    hidden_fields = ['log']
+    hidden_fields = ['log', 'survival_status']
     use_modeladmin = True
     admin_site = call_manager_admin
 

@@ -5,7 +5,7 @@ from django.apps import apps as django_apps
 from edc_base.modeladmin.mixins import ModelAdminBasicMixin, ModelAdminChangelistModelButtonMixin
 from edc_constants.constants import NEW, OPEN
 
-from .actions import call_participant
+# from .actions import call_participant
 
 
 class CallManagerAdminSite(AdminSite):
@@ -31,7 +31,7 @@ class ModelAdminCallMixin(ModelAdminChangelistModelButtonMixin, ModelAdminBasicM
 
     date_hierarchy = 'modified'
 
-    actions = [call_participant]
+    # actions = [call_participant]
 
     mixin_fields = (
         'call_attempts',

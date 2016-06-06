@@ -11,7 +11,7 @@ from django.views.generic.edit import UpdateView, DeleteView, CreateView
 from edc_base.modelform.mixins import AuditFieldsMixin
 from edc_base.utils.age import formatted_age
 from edc_call_manager.constants import DIRECT_CONTACT, INDIRECT_CONTACT, NO_CONTACT
-from edc_constants.constants import NO, CLOSED
+from edc_constants.constants import NO, CLOSED, ALIVE
 
 from .caller_site import site_model_callers
 from .forms import LogEntryForm
@@ -36,7 +36,7 @@ class CallSubjectViewMixin:
 
     def get_form_kwargs(self):
         kwargs = super(CallSubjectViewMixin, self).get_form_kwargs()
-        kwargs['initial'].update({'log': self.log})
+        kwargs['initial'].update({'log': self.log, 'survival_status': ALIVE})
         return kwargs
 
     def get_object(self):
@@ -75,7 +75,7 @@ class CallSubjectViewMixin:
 
     @property
     def demographics(self):
-        name = '{} {}'.format(self.log.call.subject.first_name or '', self.log.call.subject.last_name or '').split(':')
+        name = '{} {}'.format(self.log.call.subject.first_name or '', self.log.call.subject.last_name or '')
         name = None if name == ' ' else name
         return {'name': name,
                 'first_name': self.log.call.subject.first_name,
@@ -162,7 +162,11 @@ class CallSubjectCreateView(CallSubjectViewMixin, AuditFieldsMixin, CreateView):
 
     def form_valid(self, form):
         form.instance.log = self.log
+        form.instance.survival_status = ALIVE
         return super(CallSubjectCreateView, self).form_valid(form)
+
+    def form_invalid(self, form):
+        return super(CallSubjectCreateView, self).form_invalid(form)
 
 
 class CallSubjectUpdateView(CallSubjectViewMixin, AuditFieldsMixin, UpdateView):
@@ -176,6 +180,7 @@ class CallSubjectUpdateView(CallSubjectViewMixin, AuditFieldsMixin, UpdateView):
 
     def form_valid(self, form):
         form.instance.log = self.log
+        form.instance.survival_status = ALIVE
         return super(CallSubjectUpdateView, self).form_valid(form)
 
 

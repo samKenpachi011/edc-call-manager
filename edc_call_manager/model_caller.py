@@ -5,7 +5,7 @@ from django.core.exceptions import MultipleObjectsReturned, ImproperlyConfigured
 from django.utils import timezone
 from django.utils.text import slugify
 
-from edc_constants.constants import CLOSED, OPEN, YES, NEW, DEAD
+from edc_constants.constants import CLOSED, OPEN, YES, NEW, DEAD, NO
 
 from .exceptions import ModelCallerError
 
@@ -205,7 +205,7 @@ class ModelCaller:
             call.call_outcome = '. '.join(log_entry.outcome)
             call.call_datetime = log_entry.call_datetime
             call.call_attempts = log_entries.count()
-            if log_entry.may_call != YES or log_entry.survival_status == DEAD:
+            if log_entry.may_call == NO or log_entry.survival_status == DEAD:
                 if log_entry.survival_status == DEAD:
                     call.call_outcome = 'Deceased. ' + (call.call_outcome or '')
                 call.call_status = CLOSED
