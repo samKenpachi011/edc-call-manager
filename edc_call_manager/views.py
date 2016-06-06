@@ -75,7 +75,9 @@ class CallSubjectViewMixin:
 
     @property
     def demographics(self):
-        return {'name': '{} {}'.format(self.log.call.subject.first_name, self.log.call.subject.last_name),
+        name = '{} {}'.format(self.log.call.subject.first_name or '', self.log.call.subject.last_name or '').split(':')
+        name = None if name == ' ' else name
+        return {'name': name,
                 'first_name': self.log.call.subject.first_name,
                 'last_name': self.log.call.subject.last_name,
                 'gender': self.log.call.subject.get_gender_display(),

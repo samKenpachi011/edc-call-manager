@@ -10,6 +10,7 @@ CONTACT_TYPE = (
 APPT_LOCATIONS = (
     ('home', 'At home'),
     ('work', 'At work'),
+    ('telephone', 'By telephone'),
     ('clinic', 'At clinic'),
     ('OTHER', 'Other location'),
 )

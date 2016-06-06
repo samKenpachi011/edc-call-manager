@@ -5,6 +5,8 @@ from django.apps import apps as django_apps
 from django.core.management.color import color_style
 from django.utils.module_loading import import_module
 from django.utils.module_loading import module_has_submodule
+from edc_call_manager.exceptions import ModelCallerError
+from edc_call_manager.constants import style
 
 
 class AlreadyRegistered(Exception):
@@ -30,14 +32,20 @@ class CallerSite:
     def model_callers(self):
         return self._registry['model_callers']
 
-    def register(self, model, caller_class):
-
+    def register(self, model, caller_class, verbose=None):
+        verbose = True if verbose is None else verbose
         if model not in self.scheduling_models:
-            sys.stdout.write(' * registered model caller \'{}\'\n'.format(str(caller_class)))
+            if verbose:
+                sys.stdout.write(' * registered model caller \'{}\'\n'.format(str(caller_class)))
             caller = caller_class(model)
+            self.verify_model(model, caller)
             self.scheduling_models.update({model: caller})
             self.model_callers.update({caller.label: caller})
             if caller.unscheduling_model:
+                if caller.unscheduling_model in self.unscheduling_models:
+                    sys.stdout.write(style.NOTICE(
+                        '   Warning: more than one model caller uses unscheduling model '
+                        '\'{}\'.\n'.format(caller.unscheduling_model._meta.object_name)))
                 try:
                     self.unscheduling_models[caller.unscheduling_model].append(model)
                 except KeyError:
@@ -47,6 +55,24 @@ class CallerSite:
 
     def unregister(self, model):
         del self._registry['scheduling_models'][model]
+
+    def verify_model(self, model, caller):
+        """Confirm model has required FK."""
+        try:
+            getattr(model, caller.call_model_subject_foreignkey)
+        except AttributeError as e:
+            raise ModelCallerError(
+                'Model Caller was registered with model \'{}\'. Model requires '
+                'FK to \'{}\'. Got {}'.format(
+                    model, caller.call_model_subject_foreignkey, str(e)))
+        if caller.unscheduling_model:
+            try:
+                getattr(caller.unscheduling_model, caller.call_model_subject_foreignkey)
+            except AttributeError as e:
+                raise ModelCallerError(
+                    'Model Caller was registered with unscheduling model \'{}\'. Model requires '
+                    'FK to \'{}\'. Got {}'.format(
+                        caller.unscheduling_model, caller.call_model_subject_foreignkey, str(e)))
 
     def reset_registry(self):
         self._registry = dict(scheduling_models={}, unscheduling_models={}, model_callers={})
@@ -63,6 +89,7 @@ class CallerSite:
         return model_caller
 
     def schedule_calls(self, model, instance):
+        """Schedule a call, e.g. create a Call instance, if the model is registered."""
         try:
             model_caller = self.scheduling_models[model]
             model_caller.schedule_call(instance)
@@ -76,7 +103,6 @@ class CallerSite:
                 try:
                     model_caller = self.scheduling_models[scheduling_model]
                     model_caller.unschedule_call(instance)
-                    break
                 except KeyError:
                     pass
         except KeyError:

@@ -43,18 +43,11 @@ INSTALLED_APPS = [
     'django_crypto_fields',
     'django_revision',
     'simple_history',
-    'edc_base',
-    'edc_content_type_map',
-    'edc_meta_data',
-    'edc_registration',
-    'edc_appointment',
-    'edc_visit_schedule',
-    'edc_visit_tracking',
     'edc_call_manager',
 ]
 
 if 'test' in sys.argv:
-    INSTALLED_APPS = INSTALLED_APPS + ['edc_locator']
+    INSTALLED_APPS += ['example']
 
 MIDDLEWARE_CLASSES = [
     'django.middleware.security.SecurityMiddleware',

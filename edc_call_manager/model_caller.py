@@ -5,7 +5,9 @@ from django.core.exceptions import MultipleObjectsReturned, ImproperlyConfigured
 from django.utils import timezone
 from django.utils.text import slugify
 
-from edc_constants.constants import CLOSED, OPEN, YES
+from edc_constants.constants import CLOSED, OPEN, YES, NEW, DEAD
+
+from .exceptions import ModelCallerError
 
 
 DAILY = 'd'
@@ -27,7 +29,7 @@ class ModelCaller:
     locator_model = None
     locator_filter = 'subject_identifier'
     call_model = None  # e.g. Call
-    call_model_subject_foreignkey = 'registered_subject'
+    call_model_subject_foreignkey = 'registered_subject'  # must also be a FK on the model registered with
     log_model = None  # e.g. Log
     log_entry_model = None  # e.g. LogEntry
     interval = None
@@ -40,7 +42,7 @@ class ModelCaller:
         call_model = call_model or self.call_model
         try:
             self.call_model, self.call_model_subject_foreignkey = self.call_model
-        except IndexError:
+        except TypeError:
             self.call_model = call_model or self.call_model
         try:
             self.consent_model, self.consent_model_subject_foreignkey = self.consent_model
@@ -73,27 +75,38 @@ class ModelCaller:
                         self.__class__.__name__, attr))
         label = self.label or self.__class__.__name__
         self.label = slugify(str(label))
-        self.repeats = True if self.unscheduling_model or self.repeat_times > 0 else False
-        if self.repeats and self.repeat_times > 0 and self.interval not in [DAILY, WEEKLY, MONTHLY, YEARLY]:
+        if self.interval not in [DAILY, WEEKLY, MONTHLY, YEARLY, None]:
             raise ValueError('ModelCaller expected an \'interval\' for a call scheduled to repeat. Got None.')
+        self.repeats = False
+        if self.unscheduling_model:
+            if self.repeat_times > 0 or self.interval:
+                self.repeats = True
 
-    def personal_details(self, instance):
-        """Returns additional options to be used to create a Call instance.
-
-        Used if the consent is not available."""
+    def subject_foreignkey(self, instance):
+        """Return the FK on the model the model_caller was registered with."""
         subject_foreignkey = None
-        options = {'subject_identifier': instance.subject_identifier,
-                   'first_name': self.get_value(instance, 'first_name'),
-                   'initials': self.get_value(instance, 'initials')}
         if ''.join(self.call_model_subject_foreignkey.split('_')) == instance._meta.model_name:
             subject_foreignkey = instance
         else:
             try:
                 subject_foreignkey = getattr(instance, self.call_model_subject_foreignkey)
-            except AttributeError:
-                pass
-        if subject_foreignkey:
-            options.update({self.call_model_subject_foreignkey: subject_foreignkey})
+            except AttributeError as e:
+                raise ModelCallerError(
+                    'Model Caller was registered with model \'{}\'. Model requires '
+                    'FK to \'{}\' unless specified otherwise with attr \'call_model_subject_'
+                    'foreignkey\'. Got {}'.format(
+                        self.model, self.call_model_subject_foreignkey, str(e)))
+        return subject_foreignkey
+
+    def personal_details(self, instance):
+        """Returns additional options to be used to create a Call instance.
+
+        Used if the consent is not available."""
+        options = {'subject_identifier': instance.subject_identifier,
+                   'first_name': self.get_value(instance, 'first_name'),
+                   'initials': self.get_value(instance, 'initials')}
+        if self.call_model_subject_foreignkey:
+            options.update({self.call_model_subject_foreignkey: self.subject_foreignkey(instance)})
         return options
 
     def personal_details_from_consent(self, instance):
@@ -126,6 +139,9 @@ class ModelCaller:
             options = self.personal_details_from_consent(instance)
         else:
             options = self.personal_details(instance)
+        options.update({
+            self.call_model_subject_foreignkey: getattr(instance, self.call_model_subject_foreignkey)
+        })
         call = self.call_model.objects.create(
             scheduled=scheduled or date.today(),
             label=self.label,
@@ -137,8 +153,16 @@ class ModelCaller:
 
     def unschedule_call(self, instance):
         """Unschedules any calls for this subject and model caller."""
-        self.call_model.objects.filter(subject_identifier=instance.subject_identifier, label=self.label).exclude(
-            call_status=CLOSED).update(call_status=CLOSED, auto_closed=True)
+        options = {
+            self.call_model_subject_foreignkey: getattr(instance, self.call_model_subject_foreignkey)
+        }
+        self.call_model.objects.filter(
+            subject_identifier=instance.subject_identifier,
+            label=self.label,
+            **options).exclude(
+                call_status=CLOSED).update(
+                    call_status=CLOSED,
+                    auto_closed=True)
 
     def schedule_next_call(self, call, scheduled_date=None):
         """Schedules the next call if either scheduled_date is provided or can be calculated."""
@@ -174,14 +198,27 @@ class ModelCaller:
             call.call_outcome = '. '.join(log_entry.outcome)
             call.call_datetime = log_entry.call_datetime
             call.call_attempts = log_entries.count()
-            if log_entry.may_call == YES:
-                call.call_status = OPEN
-            else:
+            if log_entry.may_call != YES or log_entry.survival_status == DEAD:
+                if log_entry.survival_status == DEAD:
+                    call.call_outcome = 'Deceased. ' + (call.call_outcome or '')
                 call.call_status = CLOSED
+            else:
+                call.call_status = OPEN
+                if log_entry.appt == YES and log_entry.appt_date:
+                    call.call_status = CLOSED
             call.modified = log_entry.modified
             call.user_modified = log_entry.user_modified
             if commit:
                 call.save()
+
+    def appointment_handler(self, call, log_entry):
+        """Called by LogEntry post_save signal."""
+        if self.appointment_model:
+            self.appointment_model.objects.create(
+                appt_date=log_entry.appt_date,
+                appt_location=log_entry.appt_location,
+                appt_status=NEW,
+            )
 
     def get_locator(self, instance):
         """Returns the locator instance as a formatted string."""
