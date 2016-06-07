@@ -9,8 +9,8 @@ from simple_history.models import HistoricalRecords as AuditTrail
 
 from edc_base.model.fields import OtherCharField
 from edc_base.model.validators import datetime_not_future, datetime_not_before_study_start, date_is_future
-from edc_constants.choices import YES_NO_UNKNOWN, TIME_OF_DAY, TIME_OF_WEEK, ALIVE_DEAD_UNKNOWN
-from edc_constants.constants import YES, CLOSED, OPEN, NEW, DEAD, NO, ALIVE
+from edc_constants.choices import YES_NO, TIME_OF_DAY, TIME_OF_WEEK, ALIVE_DEAD_UNKNOWN
+from edc_constants.constants import YES, CLOSED, OPEN, NEW, DEAD, NO, ALIVE, DWTA, OTHER
 
 from .choices import CONTACT_TYPE, APPT_GRADING, APPT_LOCATIONS
 from .caller_site import site_model_callers
@@ -24,6 +24,15 @@ CALL_REASONS = (
     ('schedule_appt', 'Schedule an appointment'),
     ('reminder', 'Remind participant of scheduled appointment'),
     ('missed_appt', 'Follow-up with participant on missed appointment'),
+)
+
+APPT_REASONS_UNWILLING = (
+    ('not_interested', 'Not interested in participating'),
+    ('busy', 'Busy during the suggested times'),
+    ('away', 'Out of town during the suggested times'),
+    ('unavailable', 'Not available during the suggested times'),
+    (DWTA, 'Prefer not to say why I am unwilling.'),
+    (OTHER, 'Other reason ...'),
 )
 
 
@@ -168,7 +177,20 @@ class LogEntryModelMixin (models.Model):
     appt = models.CharField(
         verbose_name='Is the participant willing to schedule an appointment',
         max_length=7,
-        choices=YES_NO_UNKNOWN,
+        choices=YES_NO,
+        null=True,
+        blank=True)
+
+    appt_reason_unwilling = models.CharField(
+        verbose_name='What is the reason the participant is unwilling to schedule an appointment',
+        max_length=25,
+        choices=APPT_REASONS_UNWILLING,
+        null=True,
+        blank=True)
+
+    appt_reason_unwilling_other = models.CharField(
+        verbose_name='Other reason, please specify ...',
+        max_length=50,
         null=True,
         blank=True)
 

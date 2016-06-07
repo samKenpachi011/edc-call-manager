@@ -3,16 +3,34 @@ function updateAppointment() {
 	$('#id_appt').val(initial_value);
   if (initial_value == 'Yes') {
     showAppointment();
+    hideApptReasonUnwilling();
+    hideOtherApptReasonUnwilling();
+  } else if (initial_value == 'No') {
+    showApptReasonUnwilling();
+    hideOtherApptReasonUnwilling();
+    hideAppointment();
+    hideOtherLocation();    
   } else {
+    hideApptReasonUnwilling();
+    hideOtherApptReasonUnwilling();
   	hideAppointment();
-	hideOtherLocation();  	
+	  hideOtherLocation();
   };
   $('#id_appt').change( function(e) {
     if (this.value == 'Yes') {
     	showAppointment();
+      hideApptReasonUnwilling();
+      hideOtherApptReasonUnwilling();
+    } else if (this.value == 'No') {
+      showApptReasonUnwilling();
+      hideOtherApptReasonUnwilling();
+      hideAppointment();
+      hideOtherLocation();    
     } else {
+      hideApptReasonUnwilling();
+      hideOtherApptReasonUnwilling();
     	hideAppointment();
-    	hideOtherLocation();    	
+    	hideOtherLocation();
     }        
   });
 
@@ -24,7 +42,7 @@ function updateOtherLocation() {
   if ( initial_value == 'OTHER') {
   	showOtherLocation();
   } else {
-	hideOtherLocation();
+	  hideOtherLocation();
   };
   $('#id_appt_location').change( function(e) {
     if (this.value == 'OTHER') {
@@ -35,19 +53,44 @@ function updateOtherLocation() {
   });
 }
 
+function updateOtherApptReasonUnwilling() {
+  initial_value = $('#id_appt_reason_unwilling').find('option[selected]').val()
+  $('#id_appt_reason_unwilling').val(initial_value);
+  if ( initial_value == 'OTHER') {
+    showOtherApptReasonUnwilling();
+  } else {
+    hideOtherApptReasonUnwilling();
+  };
+  $('#id_appt_reason_unwilling').change( function( e ) {
+    if (this.value == 'OTHER') {
+      showOtherApptReasonUnwilling();
+    } else {
+      hideOtherApptReasonUnwilling();
+    }        
+  });
+}
+
+
 function updateContacted() {
 	initial_value = $('#id_contact_type').find('option[selected]').val();
    	$('#id_contact_type').val(initial_value);
   if (initial_value == 'direct') {
-    showDirectContact();
+     showDirectContact();
+     hideApptReasonUnwilling();
+     hideOtherApptReasonUnwilling();
   } else if (initial_value == 'indirect') {
-    showIndirectContact();
-	hideAppointment();
-	hideOtherLocation();
+     showIndirectContact();
+	   hideAppointment();
+	   hideOtherLocation();
+     hideApptReasonUnwilling();
+     hideOtherApptReasonUnwilling();
+
   } else {
-  	hideContact();
-	hideAppointment();
-	hideOtherLocation();
+  	 hideContact();
+	   hideAppointment();
+	   hideOtherLocation();
+     hideApptReasonUnwilling();
+     hideOtherApptReasonUnwilling();
   };
   $('#id_contact_type').change( function(e) {
     if (this.value == 'direct') {
@@ -55,11 +98,15 @@ function updateContacted() {
     } else if (this.value == 'indirect') {
     	showIndirectContact();
     	hideAppointment();
-		hideOtherLocation();
+		  hideOtherLocation();
+      hideApptReasonUnwilling();
+      hideOtherApptReasonUnwilling();
     } else {
   		hideContact();
     	hideAppointment();
-		hideOtherLocation();
+		  hideOtherLocation();
+      hideApptReasonUnwilling();
+      hideOtherApptReasonUnwilling();
     }
   });
 }
@@ -126,4 +173,24 @@ function showOtherLocation() {
 function hideOtherLocation() {
     $('#div_id_appt_location_other').hide();
     $('#id_appt_location_other').prop( "required", false ).val('');  
+}
+
+function showApptReasonUnwilling() {
+    $('#div_id_appt_reason_unwilling').show();
+    $('#id_appt_reason_unwilling').prop( "required", true );
+}
+
+function hideApptReasonUnwilling() {
+    $('#div_id_appt_reason_unwilling').hide();
+    $('#id_appt_reason_unwilling').prop( "required", false ).val('');
+}
+
+function showOtherApptReasonUnwilling() {
+    $('#div_id_appt_reason_unwilling_other').show();
+    $('#id_appt_reason_unwilling_other').prop( "required", true );  
+}
+
+function hideOtherApptReasonUnwilling() {
+    $('#div_id_appt_reason_unwilling_other').hide();
+    $('#id_appt_reason_unwilling_other').prop( "required", false ).val('');  
 }
