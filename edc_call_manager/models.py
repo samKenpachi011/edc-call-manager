@@ -14,6 +14,8 @@ from edc_constants.constants import YES, CLOSED, OPEN, NEW, DEAD, NO, ALIVE, DWT
 
 from .choices import CONTACT_TYPE, APPT_GRADING, APPT_LOCATIONS
 from .caller_site import site_model_callers
+from edc_call_manager.managers import CallManager, LogManager
+from django.contrib.admin.models import LogEntryManager
 
 MAY_CALL = (
     (YES, 'Yes, we may continue to contact the participant.'),
@@ -94,6 +96,8 @@ class CallModelMixin(models.Model):
 
     history = AuditTrail()
 
+    objects = CallManager()
+
     def natural_key(self):
         return (self.subject_identifier, self.label, self.scheduled)
 
@@ -124,6 +128,8 @@ class LogModelMixin(models.Model):
         help_text='')
 
     history = AuditTrail()
+
+    objects = LogManager()
 
     def natural_key(self):
         return (self.log_datetime, ) + self.call.natural_key()
@@ -234,6 +240,8 @@ class LogEntryModelMixin (models.Model):
         blank=True)
 
     history = AuditTrail()
+
+    objects = LogEntryManager()
 
     @property
     def subject(self):
