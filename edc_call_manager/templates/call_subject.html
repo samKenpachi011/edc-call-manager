@@ -2,15 +2,6 @@
 {% load staticfiles %}
 {% load crispy_forms_tags %}
 
-{% block extra-css %}
-    <link href="{% static "css/datetimepicker/datetimepicker.css" %}" rel="stylesheet" type="text/css" >
-{% endblock extra-css %}
-
-{% block extra-scripts %}
-    <script type="text/javascript" charset="utf8" src="{% static "js/bootstrap-datetimepicker.min.js" %}"></script>
-{% endblock extra-scripts %}
-
-
 {% block main %}
 <p></p>
 
@@ -106,7 +97,7 @@
 
 {% block extra-scripts-bottom %}
 {{ block.super }}
-<script type="text/javascript" charset="utf8" src="{% static "js/edc_call_manager.js" %}"></script>
+<script type="text/javascript" charset="utf8" src="{% static "edc_call_manager/js/edc_call_manager.js" %}"></script>
 
 <script type="text/javascript" charset="utf8" class="init">
 
