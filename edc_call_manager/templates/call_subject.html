@@ -3,8 +3,7 @@
 {% load crispy_forms_tags %}
 
 {% block main %}
-<p></p>
-
+<div class="container">
 <div id="div-home" class="col-md-8">
     <div class="panel panel-default">
         <div class="panel-heading">{{ label|title }} <span class="pull-right">Call Status: {{ call_status }}</span></div>
@@ -92,7 +91,7 @@
 
 
 </div> <!-- div-home -->
-
+</div>
 {% endblock main%}
 
 {% block extra-scripts-bottom %}
