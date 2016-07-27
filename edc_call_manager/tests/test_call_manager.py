@@ -1,83 +1,81 @@
-from datetime import date, timedelta
-from django.utils import timezone
+import json
 
+from datetime import date, timedelta
+
+from django.utils import timezone
+from django.test.testcases import TestCase
+from django.apps import apps as django_apps
+from django.core import serializers
+
+from edc_constants.constants import CLOSED, NEW, YES, NO, ALIVE, DEAD, OPEN
 from edc_call_manager.caller_site import site_model_callers, AlreadyRegistered
 from edc_call_manager.model_caller import ModelCaller, WEEKLY
-from edc_constants.constants import CLOSED, NEW, YES, NO, ALIVE, DEAD, OPEN
+from edc_call_manager_example.models import (
+    TestModel, TestStartModel, TestStopModel, Locator, RegisteredSubject)
 
-from example.models import (
-    TestModel, TestStartModel, TestStopModel, Locator, Call, Log, LogEntry, RegisteredSubject)
-
-from django.test.testcases import TestCase
+app_config = django_apps.get_app_config('edc_call_manager')
+Call = django_apps.get_model(app_config.app_label, 'call')
+Log = django_apps.get_model(app_config.app_label, 'log')
+LogEntry = django_apps.get_model(app_config.app_label, 'logentry')
 
 
 class TestModelCaller(ModelCaller):
     label = 'TestModelCaller'
-    call_model = Call
-    log_entry_model = LogEntry
-    log_model = Log
+    app_label = 'edc_call_manager_example'
     locator_model = Locator
-    unscheduling_model = TestStopModel
+    subject_model = RegisteredSubject
 
 
 class RepeatingTestModelCaller(ModelCaller):
     label = 'RepeatingTestModelCaller'
-    call_model = Call
-    log_entry_model = LogEntry
-    log_model = Log
+    app_label = 'edc_call_manager_example'
     locator_model = Locator
-    unscheduling_model = TestStopModel
+    subject_model = RegisteredSubject
     interval = WEEKLY
 
 
 class LocatorTestModelCaller(ModelCaller):
     label = 'LocatorTestModelCaller'
-    call_model = Call
-    log_entry_model = LogEntry
-    log_model = Log
-    unscheduling_model = TestStopModel
+    app_label = 'edc_call_manager_example'
     interval = WEEKLY
     locator_model = Locator
+    subject_model = RegisteredSubject
 
 
 class TestCallManager(TestCase):
 
     def test_model_factory(self):
         return TestModel.objects.create(
-            registered_subject=self.registered_subject,
             subject_identifier=self.subject_identifier)
 
     def test_start_model_factory(self):
         return TestStartModel.objects.create(
-            registered_subject=self.registered_subject,
             subject_identifier=self.subject_identifier)
 
     def test_stop_model_factory(self):
         return TestStopModel.objects.create(
-            registered_subject=self.registered_subject,
             subject_identifier=self.subject_identifier)
 
     def setUp(self):
 
         site_model_callers.reset_registry()
-        site_model_callers.register(TestModel, TestModelCaller, verbose=False)
-        site_model_callers.register(TestStartModel, RepeatingTestModelCaller, verbose=False)
+        site_model_callers.register(TestModelCaller, TestModel, TestStopModel, verbose=False)
+        site_model_callers.register(RepeatingTestModelCaller, TestStartModel, TestStopModel, verbose=False)
         self.subject_identifier = '1111111'
         self.registered_subject = RegisteredSubject.objects.create(
             subject_identifier='1111111', subject_type='subject')
 
     def test_register(self):
-        self.assertIn(TestModel, site_model_callers.scheduling_models)
-        self.assertIn(TestStartModel, site_model_callers.scheduling_models)
+        self.assertIn(TestModel, site_model_callers.start_models)
+        self.assertIn(TestStartModel, site_model_callers.start_models)
 
     def test_register_duplicate(self):
         class TestModelCaller2(ModelCaller):
             pass
-        self.assertRaises(AlreadyRegistered, site_model_callers.register, TestModel, TestModelCaller2)
+        self.assertRaises(AlreadyRegistered, site_model_callers.register, TestModelCaller2, TestModel, TestStopModel)
 
     def test_create_registered_model(self):
         TestModel.objects.create(
-            registered_subject=self.registered_subject,
             subject_identifier=self.subject_identifier)
         self.assertEqual(Call.objects.filter(subject_identifier=self.subject_identifier).count(), 1)
 
@@ -93,36 +91,37 @@ class TestCallManager(TestCase):
         self.assertEqual(call.label, 'RepeatingTestModelCaller'.lower())
         self.assertTrue(call.repeats)
 
-#     def test_scheduling_registeredsubject_reference_model(self):
-#         TestRegisteredSubjectReferenceModel.objects.create(
-#             subject_identifier=self.registered_subject.subject_identifier,
-#             registered_subject=self.registered_subject)
-#         self.assertEqual(Call.objects.filter(
-#             registered_subject__subject_identifier=self.subject_identifier).count(), 1)
-
     def test_unscheduling_ignores_if_no_scheduled(self):
         self.test_stop_model_factory()
         self.assertRaises(Call.DoesNotExist, Call.objects.get, subject_identifier=self.subject_identifier)
 
     def test_unscheduling_closes_if_scheduled(self):
-        registered_subject = self.test_start_model_factory().registered_subject
         self.assertEqual(
             Call.objects.filter(
-                registered_subject=registered_subject,
+                subject_identifier=self.subject_identifier,
+                label='RepeatingTestModelCaller'.lower(),
+                call_status=NEW).count(), 0)
+        self.assertEqual(
+            Call.objects.filter(
+                subject_identifier=self.subject_identifier,
+                label='RepeatingTestModelCaller'.lower(),
+                call_status=CLOSED).count(), 0)
+        self.test_start_model_factory()
+        self.assertEqual(
+            Call.objects.filter(
                 subject_identifier=self.subject_identifier,
                 label='RepeatingTestModelCaller'.lower(),
                 call_status=NEW).count(), 1)
         self.test_stop_model_factory()
         self.assertEqual(
             Call.objects.filter(
-                registered_subject=registered_subject,
                 subject_identifier=self.subject_identifier,
                 label='RepeatingTestModelCaller'.lower(),
                 call_status=CLOSED).count(), 1)
 
     def test_locator_not_found_for_log(self):
         site_model_callers.reset_registry()
-        site_model_callers.register(TestStartModel, LocatorTestModelCaller, verbose=False)
+        site_model_callers.register(LocatorTestModelCaller, TestStartModel, verbose=False)
         self.test_start_model_factory()
         call = Call.objects.get(
             subject_identifier=self.subject_identifier,
@@ -132,7 +131,7 @@ class TestCallManager(TestCase):
 
     def test_locator_as_string_for_log(self):
         site_model_callers.reset_registry()
-        site_model_callers.register(TestStartModel, LocatorTestModelCaller, verbose=False)
+        site_model_callers.register(LocatorTestModelCaller, TestStartModel, verbose=False)
         locator = Locator.objects.create(
             subject_identifier=self.subject_identifier,
             home_visit_permission=YES,
@@ -237,3 +236,45 @@ class TestCallManager(TestCase):
             label=call_label,
             call_status=NEW).exclude(pk=call_pk)[0].scheduled
         self.assertGreater(scheduled, call.scheduled)
+
+    def test_call_serialize(self):
+        self.test_model_factory()
+        call = Call.objects.get(subject_identifier=self.subject_identifier)
+        json_object = serializers.serialize(
+            'json', [call], use_natural_foreign_keys=True, use_natural_primary_keys=True)
+        self.assertTrue(json.loads(json_object))
+
+    def test_log_serialize(self):
+        self.test_model_factory()
+        call = Call.objects.get(subject_identifier=self.subject_identifier)
+        log = Log.objects.get(call=call)
+        json_object = serializers.serialize(
+            'json', [log], use_natural_foreign_keys=True, use_natural_primary_keys=True)
+        self.assertTrue(json.loads(json_object))
+        obj = json.loads(json_object)
+        self.assertEqual(
+            obj[0]['fields']['call'],
+            [self.subject_identifier, TestModelCaller.label.lower(), date.today().strftime('%Y-%m-%d')])
+
+    def test_logentry_serialize(self):
+        self.test_model_factory()
+        call = Call.objects.get(subject_identifier=self.subject_identifier)
+        log = Log.objects.get(call=call)
+        now = timezone.now()
+        today = date.today()
+        log_entry = LogEntry.objects.create(
+            log=log,
+            call_datetime=now,
+            contact_type='indirect',
+            survival_status=ALIVE,
+            appt=YES,
+            appt_date=today + timedelta(days=5))
+        json_object = serializers.serialize(
+            'json', [log_entry], use_natural_foreign_keys=True, use_natural_primary_keys=True)
+        self.assertTrue(json.loads(json_object))
+        obj = json.loads(json_object)
+        self.assertEqual(
+            obj[0]['fields']['log'][0][:-5], now.isoformat()[:-13])
+        self.assertEqual(
+            obj[0]['fields']['log'][1:],
+            [self.subject_identifier, TestModelCaller.label.lower(), date.today().strftime('%Y-%m-%d')])

@@ -22,6 +22,9 @@ setup(
     long_description=README,
     zip_safe=False,
     keywords='EDC django call log',
+    install_requires=[
+        'jsonpickle',
+    ],
     classifiers=[
         'Environment :: Web Environment',
         'Framework :: Django',

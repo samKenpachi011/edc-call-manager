@@ -1,3 +1,8 @@
+function edcCallManagerHomeReady( context ) {
+  var djContext = JSON.parse( context );
+  alert(djContext.app_label);
+}
+
 function updateAppointment() {
 	initial_value = $('#id_appt').find('option[selected]').val()
 	$('#id_appt').val(initial_value);

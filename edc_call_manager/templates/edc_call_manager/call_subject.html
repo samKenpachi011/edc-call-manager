@@ -2,7 +2,14 @@
 {% load staticfiles %}
 {% load crispy_forms_tags %}
 
+{% block extra-scripts %}
+{{ block.super }}
+<script type="text/javascript" charset="utf8" src="{% static "edc_call_manager/js/edc_call_manager.js" %}"></script>
+{% endblock extra-scripts %}
+
+
 {% block main %}
+
 <div class="container">
 <div id="div-home" class="col-md-8">
     <div class="panel panel-default">
@@ -79,7 +86,7 @@
         {%if contact_history %}
             {% for obj in contact_history %}
                 <li role="presentation">
-                  <a href="{% url 'call_manager:call-subject-update' caller_app=caller_app caller_model=caller_model log_pk=obj.log.pk|lower pk=obj.pk|lower %}">{{ obj.call_datetime|date:'Y-m-d H:i' }}{% if obj.may_call == 'No' %}: Do not call{% else %} {{ obj.get_contact_type_display }} {% if obj.appt == 'No' %} <i>No appt. scheduled</i> {% endif %}{% endif %} {% if obj.appt_date %}Appointment {{ obj.appt_date|date:'Y-m-d' }} ({{ obj.appt_grading }}) {% endif %}</a>
+                  <a href="{% url 'edc-call-manager:call-subject-change' caller_label=caller_label log_pk=obj.log.pk|lower pk=obj.pk|lower %}">{{ obj.call_datetime|date:'Y-m-d H:i' }}{% if obj.may_call == 'No' %}: Do not call{% else %} {{ obj.get_contact_type_display }} {% if obj.appt == 'No' %} <i>No appt. scheduled</i> {% endif %}{% endif %} {% if obj.appt_date %}Appointment {{ obj.appt_date|date:'Y-m-d' }} ({{ obj.appt_grading }}) {% endif %}</a>
                 </li>
             {% endfor %}
         {% else %}
@@ -94,9 +101,10 @@
 </div>
 {% endblock main%}
 
+
+
 {% block extra-scripts-bottom %}
 {{ block.super }}
-<script type="text/javascript" charset="utf8" src="{% static "edc_call_manager/js/edc_call_manager.js" %}"></script>
 
 <script type="text/javascript" charset="utf8" class="init">
 

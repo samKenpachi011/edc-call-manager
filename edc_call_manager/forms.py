@@ -1,17 +1,20 @@
 from django.apps import apps as django_apps
 from django import forms
 
-from .admin import call_manager_admin
-
 from edc_base.modelform.mixins import CrispyFormMixin
 from edc_constants.constants import CLOSED, OTHER, YES
+
+from .admin import edc_call_manager_admin
+
+app_config = django_apps.get_app_config('edc_call_manager')
+LogEntry = django_apps.get_model(app_config.app_label, 'logentry')
 
 
 class LogEntryForm(CrispyFormMixin, forms.ModelForm):
 
     hidden_fields = ['log', 'survival_status']
-    use_modeladmin = True
-    admin_site = call_manager_admin
+    use_modeladmin = False
+    admin_site = edc_call_manager_admin
 
     def clean(self):
         cleaned_data = super(LogEntryForm, self).clean()
@@ -29,5 +32,5 @@ class LogEntryForm(CrispyFormMixin, forms.ModelForm):
         return cleaned_data
 
     class Meta:
-        model = django_apps.get_model('call_manager', 'logentry')
+        model = LogEntry
         fields = '__all__'

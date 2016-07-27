@@ -5,8 +5,9 @@ from django.apps import apps as django_apps
 from django.core.management.color import color_style
 from django.utils.module_loading import import_module
 from django.utils.module_loading import module_has_submodule
-from edc_call_manager.exceptions import ModelCallerError
-from edc_call_manager.constants import style
+
+from .exceptions import ModelCallerError
+from .constants import style
 
 
 class AlreadyRegistered(Exception):
@@ -21,40 +22,45 @@ class CallerSite:
         self.style = color_style()
 
     @property
-    def scheduling_models(self):
-        return self._registry['scheduling_models']
+    def start_models(self):
+        """Return a dictionary of models used to schedule or 'start" a call or sequence of calls."""
+        return self._registry['start_models']
 
     @property
-    def unscheduling_models(self):
-        return self._registry['unscheduling_models']
+    def stop_models(self):
+        """Return a dictionary of models used to 'close' a call or 'stop' a sequence of calls."""
+        return self._registry['stop_models']
 
     @property
     def model_callers(self):
         return self._registry['model_callers']
 
-    def register(self, model, caller_class, verbose=None):
+    def register(self, caller_class, start_model, stop_model=None, verbose=None):
         verbose = True if verbose is None else verbose
-        if model not in self.scheduling_models:
+        if start_model not in self.start_models:
             if verbose:
                 sys.stdout.write(' * registered model caller \'{}\'\n'.format(str(caller_class)))
-            caller = caller_class(model)
-            self.verify_model(model, caller)
-            self.scheduling_models.update({model: caller})
+            caller = caller_class(start_model, stop_model)
+            # self.verify_model(model, caller)
+            self.start_models.update({start_model: caller})
             self.model_callers.update({caller.label: caller})
-            if caller.unscheduling_model:
-                if caller.unscheduling_model in self.unscheduling_models:
+            if stop_model:
+                if stop_model in self.stop_models:
                     sys.stdout.write(style.NOTICE(
-                        '   Warning: more than one model caller uses unscheduling model '
-                        '\'{}\'.\n'.format(caller.unscheduling_model._meta.object_name)))
+                        '   Warning: more than one model caller uses model '
+                        '\'{}\' to unschedule calls.\n'.format(stop_model._meta.label_lower)))
                 try:
-                    self.unscheduling_models[caller.unscheduling_model].append(model)
+                    self.stop_models[stop_model].append(start_model)
                 except KeyError:
-                    self.unscheduling_models[caller.unscheduling_model] = [model]
+                    self.stop_models[stop_model] = [start_model]
         else:
-            raise AlreadyRegistered('ModelCaller is already registered for model {}.'.format(model))
+            raise AlreadyRegistered(
+                'A ModelCaller is already registered with model \'{}\'.'.format(start_model._meta.label_lower))
 
-    def unregister(self, model):
-        del self._registry['scheduling_models'][model]
+    def unregister(self, model, caller_):
+        """ Unregister this model caller and it's start and stop models."""
+        # TODO: this does not completely reset
+        del self._registry['start_models'][model]
 
     def verify_model(self, model, caller):
         """Confirm model has required FK."""
@@ -78,34 +84,44 @@ class CallerSite:
                         caller.unscheduling_model, caller.call_model_fk, str(e)))
 
     def reset_registry(self):
-        self._registry = dict(scheduling_models={}, unscheduling_models={}, model_callers={})
+        self._registry = dict(start_models={}, stop_models={}, model_callers={})
 
-    def get_model_caller(self, model):
+    def get_model_caller(self, param):
+        """Find and return a model caller class.
+
+        param: either a "start" model class or model_caller label."""
+
         try:
-            model = django_apps.get_model(*model)
+            model = django_apps.get_model(*param)
         except (LookupError, TypeError, AttributeError):
-            pass
+            model = param
         try:
-            model_caller = self.scheduling_models[model]
+            model_caller = self.start_models[model]
         except KeyError:
             model_caller = None
+        if not model_caller:
+            try:
+                model_caller = self.model_callers[param]
+            except KeyError:
+                model_caller = None
         return model_caller
 
     def schedule_calls(self, model, instance):
-        """Schedule a call, e.g. create a Call instance, if the model is registered."""
+        """Schedule a call, e.g. create a Call instance, if the model is registered as a start model."""
         try:
-            model_caller = self.scheduling_models[model]
+            model_caller = self.start_models[model]
             model_caller.schedule_call(instance)
         except KeyError:
             pass
 
     def unschedule_calls(self, model, instance):
+        """Unschedule a call(s) if model is a stop model."""
         try:
-            scheduling_models = self.unscheduling_models[model]
-            for scheduling_model in scheduling_models:
+            start_models = self.stop_models[model]
+            for start_model in start_models:
                 try:
-                    model_caller = self.scheduling_models[scheduling_model]
-                    model_caller.unschedule_call(instance)
+                    model_caller = self.start_models[start_model]
+                    model_caller.unschedule_call(instance.subject_identifier)
                 except KeyError:
                     pass
         except KeyError:

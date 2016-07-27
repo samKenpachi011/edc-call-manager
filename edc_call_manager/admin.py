@@ -1,37 +1,46 @@
+from django.apps import apps as django_apps
 from django.contrib import admin
 from django.contrib.admin import AdminSite
-from django.apps import apps as django_apps
 
-from edc_base.modeladmin.mixins import ModelAdminBasicMixin, ModelAdminChangelistModelButtonMixin
+from edc_base.modeladmin.mixins import ModelAdminBasicMixin, ModelAdminChangelistModelButtonMixin,\
+    ModelAdminFormAutoNumberMixin, ModelAdminFormInstructionsMixin
 from edc_constants.constants import NEW, OPEN
 
-# from .actions import call_participant
+from .models import Call, Log, LogEntry
+from simple_history.admin import SimpleHistoryAdmin
+
+app_config = django_apps.get_app_config('edc_call_manager')
 
 
-class CallManagerAdminSite(AdminSite):
+class EdcCallManagerAdminSite(AdminSite):
     """
     For example:
         add to urls:
-            url(r'^call_manager/', call_manager_admin.urls),
-        then:
-            >>> reverse('call_manager_admin:edc_call_manager_call_add')
+            url(r'^admin/', `edc_call_manager_admin.urls),
+            url(r'^call_manager/', include('edc_call_manager_admin.urls', namespace='edc-call-manager'),
+        then for admin:
+            >>> reverse('edc_call_manager_admin:edc_call_manager_call_add')
             '/call_manager/edc_call_manager/call/add/'
+        and for others:
+            >>> reverse('edc-call-manager:call-subject-add', args=('testmodelcaller', '6497fe15-911a-4614-a208-59aa457e39f3'))
+            '/call_manager/testmodelcaller1/6497fe15-911a-4614-a208-59aa457e39f3/add/'
     """
     site_header = 'Call Manager'
     site_title = 'Call Manager'
     index_title = 'Call Manager Administration'
-    site_url = '/'
-call_manager_admin = CallManagerAdminSite(name='call_manager_admin')
+    site_url = '/call_manager/'
+edc_call_manager_admin = EdcCallManagerAdminSite(name='edc_call_manager_admin')
+
+
+class BaseModelAdmin(ModelAdminFormInstructionsMixin, ModelAdminFormAutoNumberMixin):
+    list_per_page = 10
+    date_hierarchy = 'modified'
+    empty_value_display = '-'
 
 
 class ModelAdminCallMixin(ModelAdminChangelistModelButtonMixin, ModelAdminBasicMixin):
 
-    subject_app = 'registration'
-    subject_model = 'registeredsubject'
-
     date_hierarchy = 'modified'
-
-    # actions = [call_participant]
 
     mixin_fields = (
         'call_attempts',
@@ -66,11 +75,12 @@ class ModelAdminCallMixin(ModelAdminChangelistModelButtonMixin, ModelAdminBasicM
         'call_attempts',
     )
 
-    mixin_search_fields = ('subject_identifier', 'initials')
+    mixin_search_fields = ('subject_identifier', 'initials', 'label')
 
     def call_button(self, obj):
-        Log = django_apps.get_model('call_manager', 'log')
+        Log = django_apps.get_model(app_config.app_label, 'log')
         log = Log.objects.get(call=obj)
+        args = (log.call.label, str(log.pk))
         if obj.call_status == NEW:
             change_label = 'New&nbsp;Call'.format(obj.call_attempts)
         elif obj.call_status == OPEN:
@@ -78,8 +88,7 @@ class ModelAdminCallMixin(ModelAdminChangelistModelButtonMixin, ModelAdminBasicM
         else:
             change_label = 'Closed&nbsp;Call'
         return self.change_button(
-            'call-subject-add', (self.subject_app, self.subject_model, str(log.pk), ),
-            label=change_label, namespace='call_manager')
+            'call-subject-add', args, label=change_label, namespace='edc-call-manager')
     call_button.short_description = 'call'
 
 
@@ -136,10 +145,10 @@ class ModelAdminLogMixin(ModelAdminBasicMixin):
         '(give participant name) who gave us this number as a means to contact them. Do you know '
         'how we can contact this person directly? This may be a phone number or a physical address.']
 
-    redirect_app_label = 'call_manager'
+    redirect_app_label = app_config.app_label
     redirect_model_name = 'call'
     redirect_search_field = 'call__subject_identifier'
-    redirect_namespace = 'call_manager_admin'
+    redirect_namespace = 'edc_call_manager_admin'
 
     mixin_fields = ("call", 'locator_information', 'contact_notes')
 
@@ -147,7 +156,7 @@ class ModelAdminLogMixin(ModelAdminBasicMixin):
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         if db_field.name == "call":
-            Call = django_apps.get_model('call_manager', 'call')
+            Call = django_apps.get_model(app_config.app_label, 'call')
             try:
                 call = Call.objects.get(pk=request.GET.get('call'))
                 kwargs["queryset"] = [call]
@@ -217,8 +226,19 @@ class ModelAdminLogEntryMixin(object):
 
     search_fields = ('id', 'log__call__subject_identifier')
 
-    def formfield_for_foreignkey(self, db_field, request, **kwargs):
-        if db_field.name == "log":
-            Log = django_apps.get_model('call_manager', 'Log')
-            kwargs["queryset"] = Log.objects.filter(id__exact=request.GET.get('call_log', 0))
-        return super(ModelAdminLogEntryMixin, self).formfield_for_foreignkey(db_field, request, **kwargs)
+    readonly_fields = ('log', )
+
+
+if app_config.app_label == 'edc_call_manager':
+
+    @admin.register(Call, site=edc_call_manager_admin)
+    class CallAdmin(BaseModelAdmin, ModelAdminCallMixin, SimpleHistoryAdmin):
+        pass
+
+    @admin.register(Log, site=edc_call_manager_admin)
+    class LogAdmin(BaseModelAdmin, ModelAdminLogMixin, SimpleHistoryAdmin):
+        pass
+
+    @admin.register(LogEntry, site=edc_call_manager_admin)
+    class LogEntryAdmin(BaseModelAdmin, ModelAdminLogEntryMixin, SimpleHistoryAdmin):
+        pass

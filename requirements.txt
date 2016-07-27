@@ -1,27 +1,5 @@
 Django
-python-dateutil
-Unipath
-GitPython
-pytz
-django-simple-history
-django_extensions==1.6.1
-pycrypto
-factory-boy
--e ~/source/edc-locator
-
-
--e ~/source/django-crypto-fields
--e ~/source/django-revision
--e ~/source/edc-base
--e ~/source/edc-registration
--e ~/source/edc-constants
--e ~/source/edc-sync
--e ~/source/edc-device
--e ~/source/edc-meta-data
--e ~/source/edc-content-type-map
--e ~/source/edc-visit-schedule
--e ~/source/edc-visit-tracking
--e ~/source/edc-rule-groups
--e ~/source/edc-appointment
--e ~/source/edc-configuration
--e ~/source/edc-export
+jsonpickle
+git+https://github.com/erikvw/django-crypto-fields@develop#egg=django_crypto_fields
+git+https://github.com/botswana-harvard/edc-base@develop#egg=edc_base
+git+https://github.com/botswana-harvard/edc-constants@develop#egg=edc_constants

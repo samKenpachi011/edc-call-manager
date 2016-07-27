@@ -41,11 +41,13 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django_revision',
-    'django_js_reverse',
     'simple_history',
     'django_crypto_fields.apps.DjangoCryptoFieldsAppConfig',
+    'django_js_reverse',
+    'crispy_forms',
+    'edc_base',
+    'edc_call_manager.apps.EdcCallManagerAppConfig',
     'edc_call_manager_example.apps.EdcCallManagerExampleAppConfig',
-    'edc_call_manager.apps.EdcCallManagerAppConfig'
 ]
 
 if 'test' in sys.argv:
@@ -63,7 +65,7 @@ MIDDLEWARE_CLASSES = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-ROOT_URLCONF = 'edc_call_manager.urls'
+ROOT_URLCONF = 'edc_call_manager_example.urls'
 
 TEMPLATES = [
     {
@@ -81,7 +83,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'edc_call_manager.wsgi.application'
+WSGI_APPLICATION = 'edc_call_manager_example.wsgi.application'
 
 
 # Database
@@ -159,3 +161,5 @@ STATICFILES_FINDERS = (
 
 GIT_DIR = BASE_DIR.ancestor(1)
 KEY_PATH = os.path.join(BASE_DIR.ancestor(1), 'crypto_fields')
+APP_CONFIG_NAME = 'edc_call_manager_example'
+CRISPY_TEMPLATE_PACK = 'bootstrap3'

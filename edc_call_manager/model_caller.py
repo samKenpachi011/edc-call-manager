@@ -1,19 +1,17 @@
 from datetime import date
 from dateutil.relativedelta import relativedelta
 
+from django.apps import apps as django_apps
 from django.core.exceptions import MultipleObjectsReturned, ImproperlyConfigured, ValidationError
 from django.utils import timezone
 from django.utils.text import slugify
 
 from edc_constants.constants import CLOSED, OPEN, YES, NEW, DEAD, NO
 
+from .constants import DAILY, WEEKLY, MONTHLY, YEARLY
 from .exceptions import ModelCallerError
 
-
-DAILY = 'd'
-WEEKLY = 'w'
-MONTHLY = 'm'
-YEARLY = 'y'
+app_config = django_apps.get_app_config('edc_call_manager')
 
 
 class ModelCaller:
@@ -25,25 +23,31 @@ class ModelCaller:
 
     """
     consent_model = None
-    consent_model_fk = None
-    locator_model = None
-    locator_filter = 'subject_identifier'
-    call_model = None  # e.g. Call
-    call_model_fk = 'registered_subject'  # must also be a FK on the model registered with
-    log_model = None  # e.g. Log
-    log_entry_model = None  # e.g. LogEntry
     interval = None
     label = None
+    locator_filter = 'subject_identifier'
+    locator_model = None
     repeat_times = 0
-    unscheduling_model = None
+    subject_model = None  # model with PII attrs. Default: RegisteredSubject
+    verbose_name = None
 
-    def __init__(self, model, call_model=None, log_model=None, log_entry_model=None):
-        self.model = model
-        call_model = call_model or self.call_model
+    def __init__(self, start_model, stop_model):
+        self.consent_model_fk = None
+        self.start_model = start_model
+        self.start_model_name = start_model._meta.label
+        self.stop_model = stop_model
+        if self.stop_model:
+            self.stop_model_name = stop_model._meta.label
         try:
-            self.call_model, self.call_model_fk = self.call_model
-        except TypeError:
-            self.call_model = call_model or self.call_model
+            self.call_model = django_apps.get_model(app_config.app_label, 'call')
+            self.log_model = django_apps.get_model(app_config.app_label, 'log')
+            self.log_entry_model = django_apps.get_model(app_config.app_label, 'logentry')
+        except LookupError as e:
+            raise ModelCallerError('{} Try setting \'app_label\' to the app where the model is declared '
+                                   'in AppConfig'.format(str(e), self.__class__.__name__))
+        if not self.subject_model:
+            self.subject_model = django_apps.get_model('edc_registration', 'RegisteredSubject')
+        self.subject_model_name = self.subject_model._meta.label
         try:
             self.consent_model, self.consent_model_fk = self.consent_model
         except TypeError:
@@ -52,77 +56,48 @@ class ModelCaller:
             self.locator_model, self.locator_filter = self.locator_model
         except TypeError:
             pass
-        if self.call_model_fk:
-            if not [fld.name for fld in self.call_model._meta.fields if fld.name in [self.call_model_fk]]:
-                raise ImproperlyConfigured(
-                    'ModelCaller model \'{}.{}\' does not have field \'{}\'. See {} declaration for attribute call_model_fk.'.format(
-                        self.call_model._meta.app_label, self.call_model._meta.model_name,
-                        self.call_model_fk, self.__class__.__name__))
+        self.locator_model_name = self.locator_model._meta.label
         if self.consent_model and self.consent_model_fk:
             if not [fld.name for fld in self.consent_model._meta.fields if fld.name in [self.consent_model_fk]]:
                 raise ImproperlyConfigured(
-                    'ModelCaller model \'{}.{}\' does not have field \'{}\'. See {} declaration for attribute consent_model_fk.'.format(
+                    'ModelCaller model \'{}.{}\' does not have field \'{}\'. See {} declaration for '
+                    'attribute consent_model_fk.'.format(
                         self.consent_model._meta.app_label, self.consent_model._meta.model_name,
                         self.consent_model_fk,
                         self.__class__.__name__))
-        self.log_model = log_model or self.log_model
-        self.log_entry_model = log_entry_model or self.log_entry_model
         for attr in ['locator_model', 'call_model', 'log_model', 'log_entry_model']:
             value = getattr(self, attr)
             if not value:
                 raise ImproperlyConfigured(
                     'Attribute {0}.{1} cannot be None. See {0} declaration.'.format(
                         self.__class__.__name__, attr))
+        if self.consent_model:
+            self.consent_model_name = self.consent_model._meta.label
         label = self.label or self.__class__.__name__
         self.label = slugify(str(label))
         if self.interval not in [DAILY, WEEKLY, MONTHLY, YEARLY, None]:
             raise ValueError('ModelCaller expected an \'interval\' for a call scheduled to repeat. Got None.')
         self.repeats = False
-        if self.unscheduling_model:
+        if self.stop_model:
             if self.repeat_times > 0 or self.interval:
                 self.repeats = True
 
-    def subject_foreignkey(self, instance):
-        """Return the FK on the model the model_caller was registered with."""
-        subject_foreignkey = None
-        if ''.join(self.call_model_fk.split('_')) == instance._meta.model_name:
-            subject_foreignkey = instance
-        else:
-            try:
-                subject_foreignkey = getattr(instance, self.call_model_fk)
-            except AttributeError as e:
-                raise ModelCallerError(
-                    'Model Caller was registered with model \'{}\'. Model requires '
-                    'FK to \'{}\' unless specified otherwise with attr \'call_model_subject_'
-                    'foreignkey\'. Got {}'.format(
-                        self.model, self.call_model_fk, str(e)))
-        return subject_foreignkey
-
-    def personal_details(self, instance):
-        """Returns additional options to be used to create a Call instance.
+    def personal_details_from_subject(self, instance):
+        """Returns additional options from the subject model to be used to create a Call instance.
 
         Used if the consent is not available."""
-        options = {'subject_identifier': instance.subject_identifier,
-                   'first_name': self.get_value(instance, 'first_name'),
-                   'initials': self.get_value(instance, 'initials')}
-        if self.call_model_fk:
-            options.update({self.call_model_fk: self.subject_foreignkey(instance)})
+        subject = self.subject(instance.subject_identifier)
+        options = {'subject_identifier': subject.subject_identifier,
+                   'first_name': subject.first_name,
+                   'initials': subject.initials}
         return options
 
     def personal_details_from_consent(self, instance):
-        """Returns additional options to be used to create a Call instance.
+        """Returns additional options from the consent model to be used to create a Call instance.
 
         You should use the edc_consent RequiresConsentMixin on the scheduling and unscheduling models to
         avoid hitting the ValueError below when the subject is not consented."""
-        try:
-            consent = self.consent_model.objects.get(subject_identifier=instance.subject_identifier)
-        except MultipleObjectsReturned:
-            consent = self.consent_model.consent.valid_consent_for_period(
-                instance.subject_identifier, timezone.now())
-        except self.consent_model.DoesNotExist as e:
-            raise ValueError(
-                'ModelCaller \'{}\' is configured to require a consent for subject \'{}\'. '
-                'Got \'{}\''.format(self.label, instance.subject_identifier, str(e)))
+        consent = self.consent(instance.subject_identifier)
         options = {'subject_identifier': consent.subject_identifier,
                    'first_name': consent.first_name,
                    'initials': consent.initials}
@@ -133,22 +108,36 @@ class ModelCaller:
             pass
         return options
 
-    def call_model_fk_value(self, instance):
-        try:
-            call_model_fk_value = getattr(instance, self.call_model_fk)
-        except AttributeError:
-            call_model_fk_value = instance
-        return call_model_fk_value
+    def subject(self, subject_identifier):
+        """Return an instance of the subject model."""
+        subject = None
+        if self.subject_model:
+            subject = self.subject_model.objects.get(subject_identifier=subject_identifier)
+        return subject
+
+    def consent(self, subject_identifier):
+        """Return an instance of the consent model or None."""
+        consent = None
+        if self.consent_model:
+            try:
+                consent = self.consent_model.objects.get(subject_identifier=subject_identifier)
+            except MultipleObjectsReturned:
+                consent = self.consent_model.consent.valid_consent_for_period(
+                    subject_identifier, timezone.now())
+            except self.consent_model.DoesNotExist as e:
+                raise ValueError(
+                    'ModelCaller \'{}\' is configured to require a consent for subject \'{}\'. '
+                    'Got \'{}\''.format(self.label, subject_identifier, str(e)))
+        return consent
 
     def schedule_call(self, instance, scheduled=None):
-        """Schedules a call by creating a new call instance and creates the corresponding Log instance."""
+        """Schedules a call by creating a new call instance and creates the corresponding Log instance.
+
+        `instance` is a start_model instance"""
         if self.consent_model:
             options = self.personal_details_from_consent(instance)
         else:
-            options = self.personal_details(instance)
-        options.update({
-            self.call_model_fk: self.call_model_fk_value(instance)
-        })
+            options = self.personal_details_from_subject(instance)
         call = self.call_model.objects.create(
             scheduled=scheduled or date.today(),
             label=self.label,
@@ -158,15 +147,13 @@ class ModelCaller:
             call=call,
             locator_information=self.get_locator(instance))
 
-    def unschedule_call(self, instance):
-        """Unschedules any calls for this subject and model caller."""
-        options = {
-            self.call_model_fk: self.call_model_fk_value(instance)
-        }
+    def unschedule_call(self, subject_identifier):
+        """Unschedules any calls for this subject and model caller.
+
+        `instance` is a stop_model instance"""
         self.call_model.objects.filter(
-            subject_identifier=instance.subject_identifier,
-            label=self.label,
-            **options).exclude(
+            subject_identifier=subject_identifier,
+            label=self.label).exclude(
                 call_status=CLOSED).update(
                     call_status=CLOSED,
                     auto_closed=True)

@@ -1,6 +1,11 @@
 from django.core.management.color import color_style
 
 style = color_style()
-NO_CONTACT = 'no_contact'
+
+DAILY = 'd'
 DIRECT_CONTACT = 'direct'
 INDIRECT_CONTACT = 'indirect'
+MONTHLY = 'm'
+NO_CONTACT = 'no_contact'
+WEEKLY = 'w'
+YEARLY = 'y'
