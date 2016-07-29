@@ -13,14 +13,17 @@
     <div id="div-home-left" class="col-md-8">
         <div class="panel-group">
           <div class="panel panel-success">
-            <div class="panel-heading">Caller Configurations</div>
+            <div class="panel-heading">Call Management and Configuration</div>
               {% for model_caller in model_callers %}
               <div class="panel panel-default">
               <div class="panel-heading">{{ model_caller.verbose_name|default:model_caller.label }}</div>
               <div class="panel-body">
-                <ul id="id-nav-pill-resources" class="nav nav-pills nav-stacked">
-                <li><a href="{% url 'edc_call_manager_admin:edc_call_manager_call_changelist' %}?q={{ model_caller.label }}">Manage Calls</a></li>
+                <ul id="id-nav-pill-resources" class="nav nav-pills">
+                <li><a class="btn btn-default" href="{% url 'edc_call_manager_admin:edc_call_manager_call_changelist' %}?q={{ model_caller.label }}">Manage Calls</a></li>
+                <li><a class="btn btn-default" data-toggle="collapse" href="#collapse_caller_config_{{ forloop.counter }}">Configuration</a></li>
                 </ul>
+               </div>
+               <div id="collapse_caller_config_{{ forloop.counter }}" class="panel-collapse collapse">
                 <table class="table table-condensed responsive">
                 <tr><td>Starts</td><td>{{ model_caller.start_model_name }}</td></tr>
                 <tr><td>Stops</td><td>{{ model_caller.stop_model_name }}</td></tr>
