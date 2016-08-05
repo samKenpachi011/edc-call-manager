@@ -27,7 +27,8 @@ class HomeView(EdcBaseViewMixin, TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context.update({'model_callers': site_model_callers.model_callers.values()})
-        context.update({'project_name': self.main_app_config.verbose_name + ': ' + 'Call Manager'})
+        if app_config.verbose_name not in context.get('project_name'):
+            context.update({'project_name': context.get('project_name') + ': ' + app_config.verbose_name})
         context.update({'app_label': app_config.app_label})
         context.update({'context': jsonpickle.encode(context)})
         return context

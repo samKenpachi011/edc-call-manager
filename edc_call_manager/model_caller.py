@@ -160,7 +160,7 @@ class ModelCaller:
 
     def schedule_next_call(self, call, scheduled_date=None):
         """Schedules the next call if either scheduled_date is provided or can be calculated."""
-        scheduled_date = scheduled_date or self.get_next_scheduled_date(call.call_datetime)
+        scheduled_date = scheduled_date or self.get_next_scheduled_date(call.last_called)
         if scheduled_date:
             self.schedule_call(call, scheduled_date)
 

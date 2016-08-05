@@ -1,6 +1,5 @@
 function edcCallManagerHomeReady( context ) {
   var djContext = JSON.parse( context );
-  alert(djContext.app_label);
 }
 
 function updateAppointment() {

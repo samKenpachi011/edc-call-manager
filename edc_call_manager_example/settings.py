@@ -42,12 +42,12 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django_revision',
     'simple_history',
-    'django_crypto_fields.apps.DjangoCryptoFieldsAppConfig',
+    'django_crypto_fields.apps.AppConfig',
     'django_js_reverse',
     'crispy_forms',
-    'edc_base',
-    'edc_call_manager.apps.EdcCallManagerAppConfig',
-    'edc_call_manager_example.apps.EdcCallManagerExampleAppConfig',
+    'edc_call_manager.apps.AppConfig',
+    'edc_call_manager_example.apps.EdcBaseAppConfig',
+    'edc_call_manager_example.apps.AppConfig',
 ]
 
 if 'test' in sys.argv:

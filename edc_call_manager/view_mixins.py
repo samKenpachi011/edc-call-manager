@@ -47,7 +47,8 @@ class CallSubjectViewMixin(EdcBaseViewMixin):
         context = super().get_context_data(**kwargs)
         subject_identifier = self.log.call.subject_identifier
         call_status = self.log.call.get_call_status_display()
-        context.update({'project_name': self.main_app_config.verbose_name + ': ' + 'Call Manager'})
+        if app_config.verbose_name not in context.get('project_name'):
+            context.update({'project_name': context.get('project_name') + ': ' + app_config.verbose_name})
         context.update(
             instructions=self.instructions,
             show_instructions=self.show_instructions,
@@ -61,7 +62,6 @@ class CallSubjectViewMixin(EdcBaseViewMixin):
             **dict(chain.from_iterable(
                 d.items() for d in (self.demographics, self.contact_history, self.appointments))),
         )
-        print(context)
         return context
 
     @property

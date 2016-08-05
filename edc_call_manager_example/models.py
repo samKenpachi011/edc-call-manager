@@ -29,6 +29,9 @@ class TestModel(BaseUuidModel):
 
 class Locator(LocatorMixin, BaseUuidModel):
 
+    subject_identifier = models.CharField(
+        max_length=25)
+
     class Meta:
         app_label = 'edc_call_manager_example'
 

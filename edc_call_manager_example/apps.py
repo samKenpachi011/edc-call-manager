@@ -1,12 +1,16 @@
-from django.apps import AppConfig
+from django.apps import AppConfig as DjangoAppConfig
 
-from edc_call_manager.apps import EdcCallManagerAppConfig as EdcCallManagerAppConfigParent
+from edc_base.apps import AppConfig as EdcBaseAppConfigParent
+from edc_call_manager.apps import AppConfig as EdcCallManagerAppConfigParent
 
 
-class EdcCallManagerExampleAppConfig(AppConfig):
+class AppConfig(DjangoAppConfig):
     name = 'edc_call_manager_example'
-    institution = 'Example Corp'
     verbose_name = 'Example App'
+
+
+class EdcBaseAppConfig(EdcBaseAppConfigParent):
+    pass
 
 
 class EdcCallManagerAppConfig(EdcCallManagerAppConfigParent):
