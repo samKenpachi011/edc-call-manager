@@ -1,5 +1,4 @@
-import copy
-import json
+import jsonpickle
 
 from django.apps import apps as django_apps
 from django.core.urlresolvers import reverse_lazy
@@ -10,9 +9,8 @@ from edc_base.modelform.mixins import AuditFieldsMixin
 from edc_base.views.edc_base_view_mixin import EdcBaseViewMixin
 from edc_constants.constants import ALIVE
 
+from .caller_site import site_model_callers
 from .view_mixins import CallSubjectViewMixin
-from edc_call_manager.caller_site import site_model_callers
-import jsonpickle
 
 app_config = django_apps.get_app_config('edc_call_manager')
 Call = django_apps.get_model(app_config.app_label, 'call')

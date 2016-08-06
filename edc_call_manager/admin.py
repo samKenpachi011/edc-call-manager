@@ -2,12 +2,13 @@ from django.apps import apps as django_apps
 from django.contrib import admin
 from django.contrib.admin import AdminSite
 
-from edc_base.modeladmin.mixins import ModelAdminBasicMixin, ModelAdminChangelistModelButtonMixin,\
-    ModelAdminFormAutoNumberMixin, ModelAdminFormInstructionsMixin
+from edc_base.modeladmin.mixins import (
+    ModelAdminBasicMixin, ModelAdminChangelistModelButtonMixin,
+    ModelAdminFormAutoNumberMixin, ModelAdminFormInstructionsMixin)
 from edc_constants.constants import NEW, OPEN
+from simple_history.admin import SimpleHistoryAdmin
 
 from .models import Call, Log, LogEntry
-from simple_history.admin import SimpleHistoryAdmin
 
 app_config = django_apps.get_app_config('edc_call_manager')
 

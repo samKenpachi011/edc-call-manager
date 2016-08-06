@@ -7,11 +7,13 @@ from django.utils import timezone
 from django_crypto_fields.fields import EncryptedTextField, FirstnameField
 
 from edc_base.model.fields import OtherCharField
-from edc_base.model.validators import datetime_not_future, datetime_not_before_study_start, date_is_future
+from edc_base.model.validators import (
+    datetime_not_future, datetime_not_before_study_start, date_is_future)
 from edc_constants.choices import YES_NO, TIME_OF_DAY, TIME_OF_WEEK, ALIVE_DEAD_UNKNOWN
 from edc_constants.constants import YES, CLOSED, OPEN, NEW, DEAD, NO, ALIVE
 
-from .choices import CONTACT_TYPE, APPT_GRADING, APPT_LOCATIONS, MAY_CALL, CALL_REASONS, APPT_REASONS_UNWILLING
+from .choices import (
+    CONTACT_TYPE, APPT_GRADING, APPT_LOCATIONS, MAY_CALL, CALL_REASONS, APPT_REASONS_UNWILLING)
 from .managers import CallManager, LogManager
 
 
