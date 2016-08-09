@@ -1,6 +1,7 @@
 import sys
 
 from django.apps import AppConfig as DjangoAppConfig
+from django.apps import apps as django_apps
 
 
 class AppConfig(DjangoAppConfig):
@@ -14,3 +15,15 @@ class AppConfig(DjangoAppConfig):
         sys.stdout.write(' * call models are in app {}.\n'.format(self.app_label))
         site_model_callers.autodiscover()
         sys.stdout.write(' Done loading {}.\n'.format(self.verbose_name))
+
+    @property
+    def call_model(self):
+        return django_apps.get_model(self.app_label, 'call')
+
+    @property
+    def log_model(self):
+        return django_apps.get_model(self.app_label, 'log')
+
+    @property
+    def log_entry_model(self):
+        return django_apps.get_model(self.app_label, 'logentry')
