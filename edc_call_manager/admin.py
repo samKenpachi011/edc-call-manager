@@ -89,7 +89,7 @@ class ModelAdminCallMixin(ModelAdminChangelistModelButtonMixin, ModelAdminBasicM
         else:
             change_label = 'Closed&nbsp;Call'
         return self.change_button(
-            'call-subject-add', args, label=change_label, namespace=app_config.app_label)
+            'call-subject-add', args, label=change_label, namespace=app_config.namespace)
     call_button.short_description = 'call'
 
 
