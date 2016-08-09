@@ -46,7 +46,11 @@ class ModelCaller:
             raise ModelCallerError('{} Try setting \'app_label\' to the app where the model is declared '
                                    'in AppConfig'.format(str(e), self.__class__.__name__))
         if not self.subject_model:
-            self.subject_model = django_apps.get_model('edc_registration', 'RegisteredSubject')
+            try:
+                self.subject_model = django_apps.get_app_config('edc_registration').get_model(
+                    'RegisteredSubject')
+            except LookupError as e:
+                raise ModelCallerError('Cannot determine subject_model. Got {}'.format(str(e)))
         self.subject_model_name = self.subject_model._meta.label
         try:
             self.consent_model, self.consent_model_fk = self.consent_model

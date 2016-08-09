@@ -5,13 +5,14 @@ from django.contrib.auth.decorators import login_required
 from django.core.exceptions import MultipleObjectsReturned, ObjectDoesNotExist
 from django.core.urlresolvers import reverse
 from django.utils.decorators import method_decorator
+
 from edc_base.utils.age import formatted_age
+from edc_base.views.edc_base_view_mixin import EdcBaseViewMixin
 from edc_call_manager.constants import NO_CONTACT, INDIRECT_CONTACT, DIRECT_CONTACT
 from edc_constants.constants import ALIVE, CLOSED, NO
 
 from .caller_site import site_model_callers
 from .forms import LogEntryForm
-from edc_base.views.edc_base_view_mixin import EdcBaseViewMixin
 
 
 app_config = django_apps.get_app_config('edc_call_manager')

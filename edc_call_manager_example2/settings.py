@@ -45,9 +45,8 @@ INSTALLED_APPS = [
     'django_crypto_fields.apps.AppConfig',
     'django_js_reverse',
     'crispy_forms',
-    # 'edc_call_manager.apps.AppConfig',
+    'edc_call_manager.apps.AppConfig',
     'edc_call_manager_example.apps.EdcBaseAppConfig',
-    'edc_call_manager_example.apps.EdcCallManagerAppConfig',
     'edc_call_manager_example.apps.AppConfig',
 ]
 

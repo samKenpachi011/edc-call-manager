@@ -11,5 +11,6 @@ class AppConfig(DjangoAppConfig):
     def ready(self):
         from .caller_site import site_model_callers
         sys.stdout.write('Loading {} ...\n'.format(self.verbose_name))
+        sys.stdout.write(' * call models are in app {}.\n'.format(self.app_label))
         site_model_callers.autodiscover()
         sys.stdout.write(' Done loading {}.\n'.format(self.verbose_name))
