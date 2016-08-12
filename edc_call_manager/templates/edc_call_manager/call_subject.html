@@ -42,13 +42,15 @@
     <div id='div-subject-contacts' class="panel panel-default">
         <div class="panel-heading">Subject Contacts</div>
             <div class="panel-body">
-             {% if contact_information %}
+             {% if contact_information.may_follow_up == 'Yes' %}
                 <ul class="nav nav-pills nav-stacked">
                     <li role="presentation"><b>Cell</b>: {{ contact_information.subject_cell }}</li>
                     <li role="presentation"><b>May SMS?</b>: {{ contact_information.may_sms_follow_up }}</li>
                     <li role="presentation"><b>Phone</b>: {{ contact_information.subject_phone|default:'<i>unavailable</i>' }}</li>
                     <li role="presentation"><b>Address</b>: {{ contact_information.physical_address }}</li>
                 </ul>
+            {% elif contact_information.may_follow_up == 'No' %}
+                May not follow.
             {% else %}
                 {{ contact_information|default:'not contact information' }}        
             {% endif %}
