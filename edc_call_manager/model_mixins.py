@@ -7,8 +7,9 @@ from django.utils import timezone
 from django_crypto_fields.fields import EncryptedTextField, FirstnameField
 
 from edc_base.model.fields import OtherCharField
+from edc_protocol.validators import datetime_not_before_study_start
 from edc_base.model.validators import (
-    datetime_not_future, datetime_not_before_study_start, date_is_future)
+    datetime_not_future, date_is_future)
 from edc_constants.choices import YES_NO, TIME_OF_DAY, TIME_OF_WEEK, ALIVE_DEAD_UNKNOWN
 from edc_constants.constants import YES, CLOSED, OPEN, NEW, DEAD, NO, ALIVE
 
