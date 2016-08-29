@@ -6,9 +6,9 @@ from django.core.exceptions import MultipleObjectsReturned, ImproperlyConfigured
 from django.utils import timezone
 from django.utils.text import slugify
 
-from edc_constants.constants import CLOSED, OPEN, YES, NEW, DEAD, NO
+from edc_constants.constants import CLOSED, YES, DEAD, NO
 
-from .constants import DAILY, WEEKLY, MONTHLY, YEARLY
+from .constants import DAILY, WEEKLY, MONTHLY, YEARLY, OPEN_CALL, NEW_CALL
 from .exceptions import ModelCallerError
 
 app_config = django_apps.get_app_config('edc_call_manager')
@@ -164,7 +164,7 @@ class ModelCaller:
 
     def schedule_next_call(self, call, scheduled_date=None):
         """Schedules the next call if either scheduled_date is provided or can be calculated."""
-        scheduled_date = scheduled_date or self.get_next_scheduled_date(call.last_called)
+        scheduled_date = scheduled_date or self.get_next_scheduled_date(call.call_datetime)
         if scheduled_date:
             self.schedule_call(call, scheduled_date)
 
@@ -201,7 +201,7 @@ class ModelCaller:
                     call.call_outcome = 'Deceased. ' + (call.call_outcome or '')
                 call.call_status = CLOSED
             else:
-                call.call_status = OPEN
+                call.call_status = OPEN_CALL
                 if log_entry.appt == YES and log_entry.appt_date:
                     call.call_status = CLOSED
             call.modified = log_entry.modified
@@ -215,7 +215,7 @@ class ModelCaller:
             self.appointment_model.objects.create(
                 appt_date=log_entry.appt_date,
                 appt_location=log_entry.appt_location,
-                appt_status=NEW,
+                appt_status=NEW_CALL,
             )
 
     def get_locator(self, instance):

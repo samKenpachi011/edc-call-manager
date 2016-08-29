@@ -5,9 +5,9 @@ from django.contrib.admin import AdminSite
 from edc_base.modeladmin.mixins import (
     ModelAdminBasicMixin, ModelAdminChangelistModelButtonMixin,
     ModelAdminFormAutoNumberMixin, ModelAdminFormInstructionsMixin)
-from edc_constants.constants import NEW, OPEN
 from simple_history.admin import SimpleHistoryAdmin
 
+from .constants import NEW_CALL, OPEN_CALL
 from .models import Call, Log, LogEntry
 
 app_config = django_apps.get_app_config('edc_call_manager')
@@ -82,9 +82,9 @@ class ModelAdminCallMixin(ModelAdminChangelistModelButtonMixin, ModelAdminBasicM
         Log = django_apps.get_model(app_config.app_label, 'log')
         log = Log.objects.get(call=obj)
         args = (log.call.label, str(log.pk))
-        if obj.call_status == NEW:
+        if obj.call_status == NEW_CALL:
             change_label = 'New&nbsp;Call'.format(obj.call_attempts)
-        elif obj.call_status == OPEN:
+        elif obj.call_status == OPEN_CALL:
             change_label = 'Open&nbsp;Call'.format(obj.call_attempts)
         else:
             change_label = 'Closed&nbsp;Call'

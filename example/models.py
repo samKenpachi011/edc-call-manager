@@ -3,7 +3,7 @@ from django.utils import timezone
 
 from edc_base.model.models.base_uuid_model import BaseUuidModel
 from edc_locator.models import LocatorMixin
-from edc_registration.models import RegisteredSubjectModelMixin
+from edc_registration.model_mixins import RegisteredSubjectModelMixin
 
 from edc_base.model.models.historical_records import HistoricalRecords
 from edc_call_manager.model_mixins import CallModelMixin, LogModelMixin, LogEntryModelMixin
@@ -12,7 +12,7 @@ from edc_call_manager.model_mixins import CallModelMixin, LogModelMixin, LogEntr
 class RegisteredSubject(RegisteredSubjectModelMixin, BaseUuidModel):
 
     class Meta:
-        app_label = 'edc_call_manager_example'
+        app_label = 'example'
 
 
 class TestModel(BaseUuidModel):
@@ -24,7 +24,7 @@ class TestModel(BaseUuidModel):
         default=timezone.now)
 
     class Meta:
-        app_label = 'edc_call_manager_example'
+        app_label = 'example'
 
 
 class Locator(LocatorMixin, BaseUuidModel):
@@ -33,7 +33,7 @@ class Locator(LocatorMixin, BaseUuidModel):
         max_length=25)
 
     class Meta:
-        app_label = 'edc_call_manager_example'
+        app_label = 'example'
 
 
 class TestStartModel(BaseUuidModel):
@@ -45,7 +45,7 @@ class TestStartModel(BaseUuidModel):
         default=timezone.now)
 
     class Meta:
-        app_label = 'edc_call_manager_example'
+        app_label = 'example'
 
 
 class TestStopModel(BaseUuidModel):
@@ -57,7 +57,7 @@ class TestStopModel(BaseUuidModel):
         default=timezone.now)
 
     class Meta:
-        app_label = 'edc_call_manager_example'
+        app_label = 'example'
 
 
 class Call(CallModelMixin, BaseUuidModel):
@@ -65,7 +65,7 @@ class Call(CallModelMixin, BaseUuidModel):
     history = HistoricalRecords()
 
     class Meta(CallModelMixin.Meta):
-        app_label = 'edc_call_manager_example'
+        app_label = 'example'
 
 
 class Log(LogModelMixin, BaseUuidModel):
@@ -75,7 +75,7 @@ class Log(LogModelMixin, BaseUuidModel):
     history = HistoricalRecords()
 
     class Meta(LogModelMixin.Meta):
-        app_label = 'edc_call_manager_example'
+        app_label = 'example'
 
 
 class LogEntry(LogEntryModelMixin, BaseUuidModel):
@@ -85,4 +85,4 @@ class LogEntry(LogEntryModelMixin, BaseUuidModel):
     history = HistoricalRecords()
 
     class Meta(LogEntryModelMixin.Meta):
-        app_label = 'edc_call_manager_example'
+        app_label = 'example'

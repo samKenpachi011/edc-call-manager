@@ -44,7 +44,9 @@ INSTALLED_APPS = [
     'django_js_reverse',
     'simple_history',
     'django_crypto_fields.apps.AppConfig',
-    'edc_call_manager_example.apps.AppConfig',
+    'edc_protocol.apps.AppConfig',
+    'edc_registration.apps.AppConfig',
+    'example.apps.AppConfig',
     'edc_call_manager.apps.AppConfig'
 ]
 

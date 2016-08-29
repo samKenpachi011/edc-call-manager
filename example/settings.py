@@ -45,14 +45,14 @@ INSTALLED_APPS = [
     'django_crypto_fields.apps.AppConfig',
     'django_js_reverse',
     'crispy_forms',
-    'edc_call_manager.apps.AppConfig',
-    'edc_call_manager_example.apps.EdcBaseAppConfig',
-    'edc_call_manager_example.apps.AppConfig',
+    'example.apps.EdcBaseAppConfig',
+    'example.apps.EdcCallManagerAppConfig',
+    'example.apps.AppConfig',
 ]
 
 if 'test' in sys.argv:
     MIGRATION_MODULES = {"edc_call_manager": None,
-                         "edc_call_manager_example": None}
+                         "example": None}
 
 MIDDLEWARE_CLASSES = [
     'django.middleware.security.SecurityMiddleware',
@@ -65,7 +65,7 @@ MIDDLEWARE_CLASSES = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-ROOT_URLCONF = 'edc_call_manager_example.urls'
+ROOT_URLCONF = 'example.urls'
 
 TEMPLATES = [
     {
@@ -83,7 +83,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'edc_call_manager_example.wsgi.application'
+WSGI_APPLICATION = 'example.wsgi.application'
 
 
 # Database

@@ -7,15 +7,15 @@ from django.utils import timezone
 from django_crypto_fields.fields import EncryptedTextField, FirstnameField
 
 from edc_base.model.fields import OtherCharField
-from edc_base.model.validators import (
-    datetime_not_future, datetime_not_before_study_start, date_is_future)
+from edc_base.model.validators import datetime_not_future, date_is_future
 from edc_constants.choices import YES_NO, TIME_OF_DAY, TIME_OF_WEEK, ALIVE_DEAD_UNKNOWN
-from edc_constants.constants import YES, CLOSED, OPEN, NEW, DEAD, NO, ALIVE
+from edc_constants.constants import YES, CLOSED, DEAD, NO, ALIVE
+from edc_protocol.validators import datetime_not_before_study_start
 
 from .choices import (
     CONTACT_TYPE, APPT_GRADING, APPT_LOCATIONS, MAY_CALL, CALL_REASONS, APPT_REASONS_UNWILLING)
+from .constants import NEW_CALL, OPEN_CALL
 from .managers import CallManager, LogManager
-
 
 app_config = django_apps.get_app_config('edc_call_manager')
 
@@ -32,7 +32,7 @@ class CallModelMixin(models.Model):
     repeats = models.BooleanField(
         default=False)
 
-    last_called = models.DateTimeField(
+    call_datetime = models.DateTimeField(
         null=True,
         editable=False,
         help_text='last call datetime updated by call log entry')
@@ -66,10 +66,10 @@ class CallModelMixin(models.Model):
     call_status = models.CharField(
         max_length=15,
         choices=(
-            (NEW, 'New'),
-            (OPEN, 'Open'),
+            (NEW_CALL, 'New'),
+            (OPEN_CALL, 'Open'),
             (CLOSED, 'Closed')),
-        default=NEW)
+        default=NEW_CALL)
 
     auto_closed = models.BooleanField(
         default=False,

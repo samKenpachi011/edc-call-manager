@@ -5,12 +5,10 @@ from django.contrib.admin.decorators import register
 
 from simple_history.admin import SimpleHistoryAdmin
 
-from edc_call_manager_example.models import TestModel, TestStartModel, TestStopModel, RegisteredSubject, Locator
 from edc_base.modeladmin.mixins import ModelAdminFormInstructionsMixin, ModelAdminFormAutoNumberMixin
-from edc_call_manager.admin import edc_call_manager_admin, ModelAdminCallMixin, ModelAdminLogMixin,\
-    ModelAdminLogEntryMixin
+from edc_call_manager.admin import edc_call_manager_admin, ModelAdminCallMixin, ModelAdminLogMixin, ModelAdminLogEntryMixin
 
-from .models import Call, Log, LogEntry
+from .models import (TestModel, TestStartModel, TestStopModel, RegisteredSubject, Locator, Call, Log, LogEntry)
 
 app_config = django_apps.get_app_config('edc_call_manager')
 

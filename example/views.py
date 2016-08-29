@@ -7,8 +7,8 @@ from edc_base.views import EdcBaseViewMixin
 
 
 class HomeView(EdcBaseViewMixin, TemplateView):
-    template_name = 'edc_call_manager_example/home.html'
-    app_config_name = 'edc_call_manager_example'
+    template_name = 'example/home.html'
+    app_config_name = 'example'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)

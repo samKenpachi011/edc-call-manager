@@ -7,11 +7,14 @@ from django.test.testcases import TestCase
 from django.apps import apps as django_apps
 from django.core import serializers
 
-from edc_constants.constants import CLOSED, NEW, YES, NO, ALIVE, DEAD, OPEN
-from edc_call_manager.caller_site import site_model_callers, AlreadyRegistered
-from edc_call_manager.model_caller import ModelCaller, WEEKLY
-from edc_call_manager_example.models import (
+from edc_constants.constants import CLOSED, YES, NO, ALIVE, DEAD
+
+from example.models import (
     TestModel, TestStartModel, TestStopModel, Locator, RegisteredSubject)
+
+from .caller_site import site_model_callers, AlreadyRegistered
+from .constants import OPEN_CALL, NEW_CALL
+from .model_caller import ModelCaller, WEEKLY
 
 app_config = django_apps.get_app_config('edc_call_manager')
 Call = django_apps.get_model(app_config.app_label, 'call')
@@ -57,13 +60,11 @@ class TestCallManager(TestCase):
             subject_identifier=self.subject_identifier)
 
     def setUp(self):
-
         site_model_callers.reset_registry()
         site_model_callers.register(TestModelCaller, TestModel, TestStopModel, verbose=False)
         site_model_callers.register(RepeatingTestModelCaller, TestStartModel, TestStopModel, verbose=False)
         self.subject_identifier = '1111111'
-        self.registered_subject = RegisteredSubject.objects.create(
-            subject_identifier='1111111', subject_type='subject')
+        self.registered_subject = RegisteredSubject.objects.create(subject_identifier='1111111')
 
     def test_register(self):
         self.assertIn(TestModel, site_model_callers.start_models)
@@ -100,7 +101,7 @@ class TestCallManager(TestCase):
             Call.objects.filter(
                 subject_identifier=self.subject_identifier,
                 label='RepeatingTestModelCaller'.lower(),
-                call_status=NEW).count(), 0)
+                call_status=NEW_CALL).count(), 0)
         self.assertEqual(
             Call.objects.filter(
                 subject_identifier=self.subject_identifier,
@@ -111,7 +112,7 @@ class TestCallManager(TestCase):
             Call.objects.filter(
                 subject_identifier=self.subject_identifier,
                 label='RepeatingTestModelCaller'.lower(),
-                call_status=NEW).count(), 1)
+                call_status=NEW_CALL).count(), 1)
         self.test_stop_model_factory()
         self.assertEqual(
             Call.objects.filter(
@@ -125,7 +126,7 @@ class TestCallManager(TestCase):
         self.test_start_model_factory()
         call = Call.objects.get(
             subject_identifier=self.subject_identifier,
-            call_status=NEW)
+            call_status=NEW_CALL)
         log = Log.objects.get(call=call)
         self.assertEqual(log.locator_information, 'locator not found.')
 
@@ -143,7 +144,7 @@ class TestCallManager(TestCase):
         self.test_start_model_factory()
         call = Call.objects.get(
             subject_identifier=self.subject_identifier,
-            call_status=NEW)
+            call_status=NEW_CALL)
         log = Log.objects.get(call=call)
         self.assertEqual(log.locator_information, locator.to_string())
         self.assertIn('723333333', log.locator_information)
@@ -152,7 +153,7 @@ class TestCallManager(TestCase):
         self.test_start_model_factory()
         call = Call.objects.get(
             subject_identifier=self.subject_identifier,
-            call_status=NEW)
+            call_status=NEW_CALL)
         call_pk = call.pk
         log = Log.objects.get(call=call)
         LogEntry.objects.create(
@@ -167,7 +168,7 @@ class TestCallManager(TestCase):
         self.test_start_model_factory()
         call = Call.objects.get(
             subject_identifier=self.subject_identifier,
-            call_status=NEW)
+            call_status=NEW_CALL)
         call_pk = call.pk
         log = Log.objects.get(call=call)
         LogEntry.objects.create(
@@ -184,7 +185,7 @@ class TestCallManager(TestCase):
         self.test_start_model_factory()
         call = Call.objects.get(
             subject_identifier=subject_identifier,
-            call_status=NEW)
+            call_status=NEW_CALL)
         call_pk = call.pk
         log = Log.objects.get(call=call)
         LogEntry.objects.create(
@@ -194,7 +195,7 @@ class TestCallManager(TestCase):
             survival_status=ALIVE)
         call = Call.objects.get(pk=call_pk)
         self.assertEqual(call.call_attempts, 1)
-        self.assertEqual(call.call_status, OPEN)
+        self.assertEqual(call.call_status, OPEN_CALL)
         LogEntry.objects.create(
             log=log,
             call_datetime=timezone.now(),
@@ -214,7 +215,7 @@ class TestCallManager(TestCase):
         self.test_start_model_factory()
         call = Call.objects.get(
             subject_identifier=subject_identifier,
-            call_status=NEW)
+            call_status=NEW_CALL)
         call_pk = call.pk
         call_label = call.label
         log = Log.objects.get(call=call)
@@ -230,11 +231,11 @@ class TestCallManager(TestCase):
         self.assertEqual(Call.objects.filter(
             subject_identifier=subject_identifier,
             label=call_label,
-            call_status=NEW).exclude(pk=call_pk).count(), 1)
+            call_status=NEW_CALL).exclude(pk=call_pk).count(), 1)
         scheduled = Call.objects.filter(
             subject_identifier=subject_identifier,
             label=call_label,
-            call_status=NEW).exclude(pk=call_pk)[0].scheduled
+            call_status=NEW_CALL).exclude(pk=call_pk)[0].scheduled
         self.assertGreater(scheduled, call.scheduled)
 
     def test_call_serialize(self):
