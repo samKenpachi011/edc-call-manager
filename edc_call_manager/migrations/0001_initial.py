@@ -17,6 +17,7 @@ import edc_base.model.fields.hostname_modification_field
 import edc_base.model.fields.userfield
 import edc_base.model.fields.uuid_auto_field
 import edc_base.model.validators.date
+import edc_protocol
 
 
 class Migration(migrations.Migration):
@@ -46,7 +47,7 @@ class Migration(migrations.Migration):
                 ('last_called', models.DateTimeField(editable=False, help_text='last call datetime updated by call log entry', null=True)),
                 ('first_name', django_crypto_fields.fields.firstname_field.FirstnameField(editable=False, help_text=' (Encryption: RSA local)', max_length=71, null=True, verbose_name='First name')),
                 ('initials', models.CharField(editable=False, max_length=3, null=True, verbose_name='Initials')),
-                ('consent_datetime', models.DateTimeField(help_text='From Subject Consent.', null=True, validators=[edc_base.model.validators.date.datetime_not_before_study_start, edc_base.model.validators.date.datetime_not_future], verbose_name='Consent date and time')),
+                ('consent_datetime', models.DateTimeField(help_text='From Subject Consent.', null=True, validators=[edc_protocol.validators.datetime_not_before_study_start, edc_base.model.validators.date.datetime_not_future], verbose_name='Consent date and time')),
                 ('call_attempts', models.IntegerField(default=0)),
                 ('call_outcome', models.TextField(max_length=150, null=True)),
                 ('call_status', models.CharField(choices=[('NEW', 'New'), ('open', 'Open'), ('closed', 'Closed')], default='NEW', max_length=15)),
@@ -74,7 +75,7 @@ class Migration(migrations.Migration):
                 ('last_called', models.DateTimeField(editable=False, help_text='last call datetime updated by call log entry', null=True)),
                 ('first_name', django_crypto_fields.fields.firstname_field.FirstnameField(editable=False, help_text=' (Encryption: RSA local)', max_length=71, null=True, verbose_name='First name')),
                 ('initials', models.CharField(editable=False, max_length=3, null=True, verbose_name='Initials')),
-                ('consent_datetime', models.DateTimeField(help_text='From Subject Consent.', null=True, validators=[edc_base.model.validators.date.datetime_not_before_study_start, edc_base.model.validators.date.datetime_not_future], verbose_name='Consent date and time')),
+                ('consent_datetime', models.DateTimeField(help_text='From Subject Consent.', null=True, validators=[edc_protocol.validators.datetime_not_before_study_start, edc_base.model.validators.date.datetime_not_future], verbose_name='Consent date and time')),
                 ('call_attempts', models.IntegerField(default=0)),
                 ('call_outcome', models.TextField(max_length=150, null=True)),
                 ('call_status', models.CharField(choices=[('NEW', 'New'), ('open', 'Open'), ('closed', 'Closed')], default='NEW', max_length=15)),
