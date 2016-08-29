@@ -1,36 +1,16 @@
 from django.apps import apps as django_apps
 from django.contrib import admin
-from django.contrib.admin import AdminSite
 
 from edc_base.modeladmin.mixins import (
     ModelAdminBasicMixin, ModelAdminChangelistModelButtonMixin,
     ModelAdminFormAutoNumberMixin, ModelAdminFormInstructionsMixin)
 from simple_history.admin import SimpleHistoryAdmin
 
+from .admin_site import edc_call_manager_admin
 from .constants import NEW_CALL, OPEN_CALL
 from .models import Call, Log, LogEntry
 
 app_config = django_apps.get_app_config('edc_call_manager')
-
-
-class EdcCallManagerAdminSite(AdminSite):
-    """
-    For example:
-        add to urls:
-            url(r'^admin/', `edc_call_manager_admin.urls),
-            url(r'^call_manager/', include('edc_call_manager_admin.urls', namespace='edc-call-manager'),
-        then for admin:
-            >>> reverse('edc_call_manager_admin:edc_call_manager_call_add')
-            '/call_manager/edc_call_manager/call/add/'
-        and for others:
-            >>> reverse('edc-call-manager:call-subject-add', args=('testmodelcaller', '6497fe15-911a-4614-a208-59aa457e39f3'))
-            '/call_manager/testmodelcaller1/6497fe15-911a-4614-a208-59aa457e39f3/add/'
-    """
-    site_header = 'Call Manager'
-    site_title = 'Call Manager'
-    index_title = 'Call Manager Administration'
-    site_url = '/call_manager/'
-edc_call_manager_admin = EdcCallManagerAdminSite(name='edc_call_manager_admin')
 
 
 class BaseModelAdmin(ModelAdminFormInstructionsMixin, ModelAdminFormAutoNumberMixin):

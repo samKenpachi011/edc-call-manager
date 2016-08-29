@@ -8,6 +8,7 @@ from django.views.generic.edit import UpdateView, DeleteView, CreateView
 from edc_base.modelform.mixins import AuditFieldsMixin
 from edc_base.views.edc_base_view_mixin import EdcBaseViewMixin
 from edc_constants.constants import ALIVE
+from edc_protocol.view_mixins import EdcProtocolViewMixin
 
 from .caller_site import site_model_callers
 from .view_mixins import CallSubjectViewMixin
@@ -18,7 +19,7 @@ Log = django_apps.get_model(app_config.app_label, 'log')
 LogEntry = django_apps.get_model(app_config.app_label, 'logentry')
 
 
-class HomeView(EdcBaseViewMixin, TemplateView):
+class HomeView(EdcBaseViewMixin, EdcProtocolViewMixin, TemplateView):
 
     template_name = 'edc_call_manager/home.html'
 
@@ -32,7 +33,7 @@ class HomeView(EdcBaseViewMixin, TemplateView):
         return context
 
 
-class CallSubjectCreateView(CallSubjectViewMixin, AuditFieldsMixin, CreateView):
+class CallSubjectCreateView(CallSubjectViewMixin, EdcProtocolViewMixin, AuditFieldsMixin, CreateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -48,7 +49,7 @@ class CallSubjectCreateView(CallSubjectViewMixin, AuditFieldsMixin, CreateView):
         return super(CallSubjectCreateView, self).form_invalid(form)
 
 
-class CallSubjectUpdateView(CallSubjectViewMixin, AuditFieldsMixin, UpdateView):
+class CallSubjectUpdateView(CallSubjectViewMixin, EdcProtocolViewMixin, AuditFieldsMixin, UpdateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -61,6 +62,6 @@ class CallSubjectUpdateView(CallSubjectViewMixin, AuditFieldsMixin, UpdateView):
         return super(CallSubjectUpdateView, self).form_valid(form)
 
 
-class CallSubjectDeleteView(CallSubjectViewMixin, AuditFieldsMixin, DeleteView):
+class CallSubjectDeleteView(CallSubjectViewMixin, EdcProtocolViewMixin, AuditFieldsMixin, DeleteView):
 
     success_url = reverse_lazy('call-subject-delete')
