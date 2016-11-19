@@ -6,7 +6,7 @@ from django.views.generic.base import TemplateView
 from django.views.generic.edit import UpdateView, DeleteView, CreateView
 
 from edc_base.modelform.mixins import AuditFieldsMixin
-from edc_base.views.edc_base_view_mixin import EdcBaseViewMixin
+from edc_base.view_mixins import EdcBaseViewMixin
 from edc_constants.constants import ALIVE
 from edc_protocol.view_mixins import EdcProtocolViewMixin
 
