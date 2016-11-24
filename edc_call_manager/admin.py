@@ -1,7 +1,7 @@
 from django.apps import apps as django_apps
 from django.contrib import admin
 
-from edc_base.modeladmin.mixins import (
+from edc_base.modeladmin_mixins import (
     ModelAdminBasicMixin, ModelAdminChangelistModelButtonMixin,
     ModelAdminFormAutoNumberMixin, ModelAdminFormInstructionsMixin)
 from simple_history.admin import SimpleHistoryAdmin

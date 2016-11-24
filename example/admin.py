@@ -5,7 +5,7 @@ from django.contrib.admin.decorators import register
 
 from simple_history.admin import SimpleHistoryAdmin
 
-from edc_base.modeladmin.mixins import ModelAdminFormInstructionsMixin, ModelAdminFormAutoNumberMixin
+from edc_base.modeladmin_mixins import ModelAdminFormInstructionsMixin, ModelAdminFormAutoNumberMixin
 from edc_call_manager.admin import edc_call_manager_admin, ModelAdminCallMixin, ModelAdminLogMixin, ModelAdminLogEntryMixin
 
 from .models import (TestModel, TestStartModel, TestStopModel, RegisteredSubject, Locator, Call, Log, LogEntry)
