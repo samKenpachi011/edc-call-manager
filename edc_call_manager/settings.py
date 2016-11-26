@@ -13,10 +13,10 @@ https://docs.djangoproject.com/en/1.9/ref/settings/
 import os
 import sys
 
-from unipath import Path
+from pathlib import Path
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
-BASE_DIR = Path(os.path.dirname(os.path.realpath(__file__)))
+BASE_DIR = os.path.dirname(os.path.realpath(__file__))
 
 
 # Quick-start development settings - unsuitable for production
@@ -40,14 +40,25 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'django_revision',
     'django_js_reverse',
     'simple_history',
     'django_crypto_fields.apps.AppConfig',
-    'edc_protocol.apps.AppConfig',
+    'django_revision.apps.AppConfig',
+    'edc_appointment.apps.AppConfig',
+    'edc_base.apps.AppConfig',
+    'edc_device.apps.AppConfig',
+    'edc_identifier.apps.AppConfig',
+    'edc_locator.apps.AppConfig',
+    'edc_metadata.apps.AppConfig',
     'edc_registration.apps.AppConfig',
+    'edc_visit_schedule.apps.AppConfig',
+    'edc_visit_tracking.apps.AppConfig',
+    'edc_example.apps.EdcProtocolAppConfig',
+    'edc_example.apps.EdcTimepointAppConfig',
+    'edc_example.apps.EdcConsentAppConfig',
+    'edc_example.apps.AppConfig',
     'example.apps.AppConfig',
-    'edc_call_manager.apps.AppConfig'
+    'edc_call_manager.apps.AppConfig',
 ]
 
 if 'test' in sys.argv:
@@ -92,7 +103,7 @@ WSGI_APPLICATION = 'edc_call_manager.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR.ancestor(1), 'db.sqlite3'),
+        'NAME': str(Path(BASE_DIR).parent.joinpath('db.sqlite3')),
     }
 }
 
@@ -146,9 +157,9 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
-STATIC_ROOT = BASE_DIR.child('static')
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
-MEDIA_ROOT = BASE_DIR.child('media')
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # List of finder classes that know how to find static files in
 # various locations.
@@ -159,5 +170,4 @@ STATICFILES_FINDERS = (
 )
 
 
-GIT_DIR = BASE_DIR.ancestor(1)
-KEY_PATH = os.path.join(BASE_DIR.ancestor(1), 'crypto_fields')
+KEY_PATH = str(Path(BASE_DIR).parent.joinpath('crypto_fields'))

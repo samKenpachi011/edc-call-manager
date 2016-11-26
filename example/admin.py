@@ -8,7 +8,7 @@ from simple_history.admin import SimpleHistoryAdmin
 from edc_base.modeladmin_mixins import ModelAdminFormInstructionsMixin, ModelAdminFormAutoNumberMixin
 from edc_call_manager.admin import edc_call_manager_admin, ModelAdminCallMixin, ModelAdminLogMixin, ModelAdminLogEntryMixin
 
-from .models import (TestModel, TestStartModel, TestStopModel, RegisteredSubject, Locator, Call, Log, LogEntry)
+from .models import (TestModel, TestStartModel, TestStopModel, Locator, Call, Log, LogEntry)
 
 app_config = django_apps.get_app_config('edc_call_manager')
 
@@ -25,11 +25,6 @@ class TestStartModelAdmin(ModelAdmin):
 
 @register(TestStopModel)
 class TestStopModelAdmin(ModelAdmin):
-    pass
-
-
-@register(RegisteredSubject)
-class RegisteredSubjectAdmin(ModelAdmin):
     pass
 
 

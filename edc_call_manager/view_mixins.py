@@ -6,7 +6,7 @@ from django.core.exceptions import MultipleObjectsReturned, ObjectDoesNotExist
 from django.core.urlresolvers import reverse
 from django.utils.decorators import method_decorator
 
-from edc_base.utils.age import formatted_age
+from edc_base.utils import formatted_age
 from edc_base.view_mixins import EdcBaseViewMixin
 from edc_call_manager.constants import NO_CONTACT, INDIRECT_CONTACT, DIRECT_CONTACT
 from edc_constants.constants import ALIVE, CLOSED, NO

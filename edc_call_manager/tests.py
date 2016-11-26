@@ -2,15 +2,14 @@ import json
 
 from datetime import date, timedelta
 
-from django.utils import timezone
-from django.test.testcases import TestCase
 from django.apps import apps as django_apps
 from django.core import serializers
+from django.test.testcases import TestCase
+from django.utils import timezone
 
 from edc_constants.constants import CLOSED, YES, NO, ALIVE, DEAD
-
-from example.models import (
-    TestModel, TestStartModel, TestStopModel, Locator, RegisteredSubject)
+from edc_registration.models import RegisteredSubject
+from example.models import TestModel, TestStartModel, TestStopModel, Locator
 
 from .caller_site import site_model_callers, AlreadyRegistered
 from .constants import OPEN_CALL, NEW_CALL

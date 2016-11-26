@@ -1,18 +1,9 @@
 from django.db import models
 from django.utils import timezone
 
-from edc_base.model.models.base_uuid_model import BaseUuidModel
-from edc_locator.models import LocatorMixin
-from edc_registration.model_mixins import RegisteredSubjectModelMixin
-
-from edc_base.model.models.historical_records import HistoricalRecords
+from edc_base.model.models import BaseUuidModel, HistoricalRecords
 from edc_call_manager.model_mixins import CallModelMixin, LogModelMixin, LogEntryModelMixin
-
-
-class RegisteredSubject(RegisteredSubjectModelMixin, BaseUuidModel):
-
-    class Meta:
-        app_label = 'example'
+from edc_locator.model_mixins import LocatorModelMixin
 
 
 class TestModel(BaseUuidModel):
@@ -23,14 +14,13 @@ class TestModel(BaseUuidModel):
     report_datetime = models.DateField(
         default=timezone.now)
 
+    objects = models.Manager()
+
     class Meta:
         app_label = 'example'
 
 
-class Locator(LocatorMixin, BaseUuidModel):
-
-    subject_identifier = models.CharField(
-        max_length=25)
+class Locator(LocatorModelMixin, BaseUuidModel):
 
     class Meta:
         app_label = 'example'
@@ -44,6 +34,8 @@ class TestStartModel(BaseUuidModel):
     report_datetime = models.DateField(
         default=timezone.now)
 
+    objects = models.Manager()
+
     class Meta:
         app_label = 'example'
 
@@ -56,11 +48,15 @@ class TestStopModel(BaseUuidModel):
     report_datetime = models.DateField(
         default=timezone.now)
 
+    objects = models.Manager()
+
     class Meta:
         app_label = 'example'
 
 
 class Call(CallModelMixin, BaseUuidModel):
+
+    objects = models.Manager()
 
     history = HistoricalRecords()
 
@@ -72,6 +68,8 @@ class Log(LogModelMixin, BaseUuidModel):
 
     call = models.ForeignKey(Call)
 
+    objects = models.Manager()
+
     history = HistoricalRecords()
 
     class Meta(LogModelMixin.Meta):
@@ -81,6 +79,8 @@ class Log(LogModelMixin, BaseUuidModel):
 class LogEntry(LogEntryModelMixin, BaseUuidModel):
 
     log = models.ForeignKey(Log)
+
+    objects = models.Manager()
 
     history = HistoricalRecords()
 

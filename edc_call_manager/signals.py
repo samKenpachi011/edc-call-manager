@@ -1,5 +1,6 @@
 from django.db.models.signals import post_save
 from django.dispatch.dispatcher import receiver
+
 from edc_constants.constants import CLOSED
 
 from .caller_site import site_model_callers

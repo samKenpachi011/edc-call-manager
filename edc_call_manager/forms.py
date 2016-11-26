@@ -1,7 +1,7 @@
 from django.apps import apps as django_apps
 from django import forms
 
-from edc_base.modelform.mixins import CrispyFormMixin
+from edc_base.modelform_mixins import CrispyFormMixin
 from edc_constants.constants import CLOSED, OTHER, YES
 
 from .admin import edc_call_manager_admin
