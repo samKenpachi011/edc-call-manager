@@ -8,55 +8,11 @@ For example, contact all subjects to complete a revised consent, study closure, 
 
     pip install git+https://github.com/botswana-harvard/edc-call-manager@develop#egg=edc_call_manager
 
-### Create a simple `call_manager` app
-
-Create an app `call_manager`.
-
-    call_manager
-      |
-      --- __init__.py
-          admin.py
-          apps.py
-          models.py
-          model_callers.py
-
-### create apps.py:
-
-    from edc_call_manager.apps import EdcCallManagerAppConfig as EdcCallManagerAppConfigParent
-
-    class EdcCallManagerAppConfig(EdcCallManagerAppConfigParent):
-        app_label = 'call_manager'
-    
-### create models.py:
-
-    from edc_call_manager.models import CallModelMixin,  LogModelMixin, LogEntryModelMixin
-
-    class Call(CallModelMixin, BaseUuidModel):
-    
-        class Meta(CallModelMixin.Meta):
-            app_label = 'call_manager'
-    
-    
-    class Log(LogModelMixin, BaseUuidModel):
-    
-        call = models.ForeignKey(Call)
-    
-        class Meta(LogModelMixin.Meta):
-            app_label = 'call_manager'
-    
-    
-    class LogEntry(LogEntryModelMixin, BaseUuidModel):
-    
-        log = models.ForeignKey(Log)
-    
-        class Meta(LogEntryModelMixin.Meta):
-            app_label = 'call_manager'
-
-### add the app to INSTALLED_APPS
+add the app to INSTALLED_APPS
 
     INSTALLED_APPS = (
         ...,
-        call_manager.apps.EdcCallManagerAppConfig,
+        edc_call_manager.apps.AppConfig,
         my_app.apps.MyAppAppConfig,
         )
 
