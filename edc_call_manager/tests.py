@@ -5,8 +5,8 @@ from datetime import date, timedelta
 from django.apps import apps as django_apps
 from django.core import serializers
 from django.test.testcases import TestCase
-from django.utils import timezone
 
+from edc_base.utils import get_utcnow
 from edc_constants.constants import CLOSED, YES, NO, ALIVE, DEAD
 from edc_registration.models import RegisteredSubject
 from example.models import TestModel, TestStartModel, TestStopModel, Locator
@@ -157,7 +157,7 @@ class TestCallManager(TestCase):
         log = Log.objects.get(call=call)
         LogEntry.objects.create(
             log=log,
-            call_datetime=timezone.now(),
+            call_datetime=get_utcnow(),
             contact_type='direct',
             survival_status=ALIVE)
         call = Call.objects.get(pk=call_pk)
@@ -172,7 +172,7 @@ class TestCallManager(TestCase):
         log = Log.objects.get(call=call)
         LogEntry.objects.create(
             log=log,
-            call_datetime=timezone.now(),
+            call_datetime=get_utcnow(),
             contact_type='indirect',
             survival_status=DEAD)
         call = Call.objects.get(pk=call_pk)
@@ -189,7 +189,7 @@ class TestCallManager(TestCase):
         log = Log.objects.get(call=call)
         LogEntry.objects.create(
             log=log,
-            call_datetime=timezone.now(),
+            call_datetime=get_utcnow(),
             contact_type='indirect',
             survival_status=ALIVE)
         call = Call.objects.get(pk=call_pk)
@@ -197,7 +197,7 @@ class TestCallManager(TestCase):
         self.assertEqual(call.call_status, OPEN_CALL)
         LogEntry.objects.create(
             log=log,
-            call_datetime=timezone.now(),
+            call_datetime=get_utcnow(),
             contact_type='direct',
             survival_status=ALIVE,
             appt=YES,
@@ -220,7 +220,7 @@ class TestCallManager(TestCase):
         log = Log.objects.get(call=call)
         LogEntry.objects.create(
             log=log,
-            call_datetime=timezone.now(),
+            call_datetime=get_utcnow(),
             contact_type='indirect',
             survival_status=ALIVE,
             appt=YES,
@@ -260,7 +260,7 @@ class TestCallManager(TestCase):
         self.test_model_factory()
         call = Call.objects.get(subject_identifier=self.subject_identifier)
         log = Log.objects.get(call=call)
-        now = timezone.now()
+        now = get_utcnow()
         today = date.today()
         log_entry = LogEntry.objects.create(
             log=log,

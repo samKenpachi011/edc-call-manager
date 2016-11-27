@@ -3,9 +3,9 @@ from dateutil.relativedelta import relativedelta
 
 from django.apps import apps as django_apps
 from django.core.exceptions import MultipleObjectsReturned, ImproperlyConfigured, ValidationError
-from django.utils import timezone
 from django.utils.text import slugify
 
+from edc_base.utils import get_utcnow
 from edc_constants.constants import CLOSED, YES, DEAD, NO
 
 from .constants import DAILY, WEEKLY, MONTHLY, YEARLY, OPEN_CALL, NEW_CALL
@@ -127,7 +127,7 @@ class ModelCaller:
                 consent = self.consent_model.objects.get(subject_identifier=subject_identifier)
             except MultipleObjectsReturned:
                 consent = self.consent_model.consent.valid_consent_for_period(
-                    subject_identifier, timezone.now())
+                    subject_identifier, get_utcnow())
             except self.consent_model.DoesNotExist as e:
                 raise ValueError(
                     'ModelCaller \'{}\' is configured to require a consent for subject \'{}\'. '
