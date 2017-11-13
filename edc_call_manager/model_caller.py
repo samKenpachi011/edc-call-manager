@@ -39,9 +39,11 @@ class ModelCaller:
         if self.stop_model:
             self.stop_model_name = stop_model._meta.label
         try:
-            self.call_model = django_apps.get_model(app_config.app_label, 'call')
+            self.call_model = django_apps.get_model(
+                app_config.app_label, 'call')
             self.log_model = django_apps.get_model(app_config.app_label, 'log')
-            self.log_entry_model = django_apps.get_model(app_config.app_label, 'logentry')
+            self.log_entry_model = django_apps.get_model(
+                app_config.app_label, 'logentry')
         except LookupError as e:
             raise ModelCallerError('{} Try setting \'app_label\' to the app where the model is declared '
                                    'in AppConfig'.format(str(e), self.__class__.__name__))
@@ -50,7 +52,8 @@ class ModelCaller:
                 self.subject_model = django_apps.get_app_config('edc_registration').get_model(
                     'RegisteredSubject')
             except LookupError as e:
-                raise ModelCallerError('Cannot determine subject_model. Got {}'.format(str(e)))
+                raise ModelCallerError(
+                    'Cannot determine subject_model. Got {}'.format(str(e)))
         self.subject_model_name = self.subject_model._meta.label
         try:
             self.consent_model, self.consent_model_fk = self.consent_model
@@ -80,7 +83,8 @@ class ModelCaller:
         label = self.label or self.__class__.__name__
         self.label = slugify(str(label))
         if self.interval not in [DAILY, WEEKLY, MONTHLY, YEARLY, None]:
-            raise ValueError('ModelCaller expected an \'interval\' for a call scheduled to repeat. Got None.')
+            raise ValueError(
+                'ModelCaller expected an \'interval\' for a call scheduled to repeat. Got None.')
         self.repeats = False
         if self.stop_model:
             if self.repeat_times > 0 or self.interval:
@@ -116,7 +120,8 @@ class ModelCaller:
         """Return an instance of the subject model."""
         subject = None
         if self.subject_model:
-            subject = self.subject_model.objects.get(subject_identifier=subject_identifier)
+            subject = self.subject_model.objects.get(
+                subject_identifier=subject_identifier)
         return subject
 
     def consent(self, subject_identifier):
@@ -124,9 +129,10 @@ class ModelCaller:
         consent = None
         if self.consent_model:
             try:
-                consent = self.consent_model.objects.get(subject_identifier=subject_identifier)
+                consent = self.consent_model.objects.get(
+                    subject_identifier=subject_identifier)
             except MultipleObjectsReturned:
-                consent = self.consent_model.consent.valid_consent_for_period(
+                consent = self.consent_model.consent.consent_for_period(
                     subject_identifier, get_utcnow())
             except self.consent_model.DoesNotExist as e:
                 raise ValueError(
@@ -164,7 +170,8 @@ class ModelCaller:
 
     def schedule_next_call(self, call, scheduled_date=None):
         """Schedules the next call if either scheduled_date is provided or can be calculated."""
-        scheduled_date = scheduled_date or self.get_next_scheduled_date(call.call_datetime)
+        scheduled_date = scheduled_date or self.get_next_scheduled_date(
+            call.call_datetime)
         if scheduled_date:
             self.schedule_call(call, scheduled_date)
 
@@ -176,9 +183,11 @@ class ModelCaller:
         if self.interval == DAILY:
             scheduled_date = reference_date + relativedelta(days=+1)
         elif self.interval == WEEKLY:
-            scheduled_date = reference_date + relativedelta(days=+1, weekday=reference_date.weekday())
+            scheduled_date = reference_date + \
+                relativedelta(days=+1, weekday=reference_date.weekday())
         elif self.interval == MONTHLY:
-            scheduled_date = reference_date + relativedelta(months=+1, weekday=reference_date.weekday())
+            scheduled_date = reference_date + \
+                relativedelta(months=+1, weekday=reference_date.weekday())
         else:
             pass
         return scheduled_date
@@ -188,17 +197,20 @@ class ModelCaller:
         for this subject and model caller.
 
         Only updates call if this is the most recent log_entry."""
-        log_entries = self.log_entry_model.objects.filter(log=log_entry.log).order_by('-call_datetime')
+        log_entries = self.log_entry_model.objects.filter(
+            log=log_entry.log).order_by('-call_datetime')
         if log_entry.pk == log_entries[0].pk:
             call = self.call_model.objects.get(pk=call.pk)
             if call.call_status == CLOSED:
-                raise ValidationError('Call is closed. Perhaps catch this in the form.')
+                raise ValidationError(
+                    'Call is closed. Perhaps catch this in the form.')
             call.call_outcome = '. '.join(log_entry.outcome)
             call.call_datetime = log_entry.call_datetime
             call.call_attempts = log_entries.count()
             if log_entry.may_call == NO or log_entry.survival_status == DEAD:
                 if log_entry.survival_status == DEAD:
-                    call.call_outcome = 'Deceased. ' + (call.call_outcome or '')
+                    call.call_outcome = 'Deceased. ' + \
+                        (call.call_outcome or '')
                 call.call_status = CLOSED
             else:
                 call.call_status = OPEN_CALL

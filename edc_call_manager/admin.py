@@ -176,6 +176,7 @@ class ModelAdminLogEntryMixin(object):
     )
 
     radio_fields = {
+        "call_reason": admin.VERTICAL,
         "contact_type": admin.VERTICAL,
         "time_of_week": admin.VERTICAL,
         "time_of_day": admin.VERTICAL,
@@ -207,7 +208,14 @@ class ModelAdminLogEntryMixin(object):
 
     search_fields = ('id', 'log__call__subject_identifier')
 
-    readonly_fields = ('log', )
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if db_field.name == "log":
+            Log = django_apps.get_model(
+                'edc_call_manager', 'log')
+            kwargs["queryset"] = Log.objects.filter(
+                id__exact=request.GET.get('log'))
+        return super().formfield_for_foreignkey(
+            db_field, request, **kwargs)
 
 
 if app_config.app_label == 'edc_call_manager':

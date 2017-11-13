@@ -34,10 +34,12 @@ def edc_call_manager_log_entry_on_post_save(sender, instance, raw, created, usin
 
     if not raw:
         try:
-            site_model_callers.update_call_from_log(instance.log.call, log_entry=instance)
+            site_model_callers.update_call_from_log(
+                instance.log.call, log_entry=instance)
             model_caller = site_model_callers.get_model_caller(sender)
             if model_caller:
-                model_caller.appointment_handler(instance.log.call, log_entry=instance)
+                model_caller.appointment_handler(
+                    instance.log.call, log_entry=instance)
         except AttributeError as e:
             if 'has no attribute \'log\'' not in str(e):
                 raise AttributeError(e)

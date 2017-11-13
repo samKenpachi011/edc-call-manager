@@ -14,7 +14,6 @@ def register(start_model, stop_model=None, **kwargs):
 
         if not issubclass(caller_class, ModelCaller):
             raise ValueError('Wrapped class must subclass ModelCaller.')
-
         site_model_callers.register(caller_class, start_model, stop_model)
 
         return caller_class

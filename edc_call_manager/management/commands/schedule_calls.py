@@ -10,13 +10,15 @@ class Command(BaseCommand):
     help = 'Schedule calls for given model caller if not already scheduled'
 
     def add_arguments(self, parser):
-        parser.add_argument('model_caller', type=str, help='Model caller app_label.model_name')
+        parser.add_argument(
+            'model_caller', type=str, help='Model caller app_label.model_name')
 
     def handle(self, *args, **options):
         try:
             model = django_apps.get_model(*options['model_caller'].split('.'))
         except LookupError:
-            raise CommandError('Unknown app_label.model_name. Got \'{}\''.format(options['model_caller']))
+            raise CommandError(
+                'Unknown app_label.model_name. Got \'{}\''.format(options['model_caller']))
         try:
             model_caller = site_model_callers.get_model_caller(model)
         except KeyError:
@@ -28,7 +30,8 @@ class Command(BaseCommand):
         new_calls = 0
         for obj in model.objects.all():
             try:
-                model_caller.call_model.objects.get(potential_subject=obj, label=model_caller.label)
+                model_caller.call_model.objects.get(
+                    potential_subject=obj, label=model_caller.label)
             except MultipleObjectsReturned:
                 pass
             except ObjectDoesNotExist:

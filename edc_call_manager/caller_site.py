@@ -39,7 +39,8 @@ class CallerSite:
         verbose = True if verbose is None else verbose
         if start_model not in self.start_models:
             if verbose:
-                sys.stdout.write(' * registered model caller \'{}\'\n'.format(str(caller_class)))
+                sys.stdout.write(
+                    ' * registered model caller \'{}\'\n'.format(str(caller_class)))
             caller = caller_class(start_model, stop_model)
             # self.verify_model(model, caller)
             self.start_models.update({start_model: caller})
@@ -84,7 +85,8 @@ class CallerSite:
                         caller.unscheduling_model, caller.call_model_fk, str(e)))
 
     def reset_registry(self):
-        self._registry = dict(start_models={}, stop_models={}, model_callers={})
+        self._registry = dict(
+            start_models={}, stop_models={}, model_callers={})
 
     def get_model_caller(self, param):
         """Find and return a model caller class.
@@ -147,7 +149,8 @@ class CallerSite:
             try:
                 mod = import_module(app)
                 try:
-                    before_import_registry = copy.copy(site_model_callers._registry)
+                    before_import_registry = copy.copy(
+                        site_model_callers._registry)
                     import_module('{}.{}'.format(app, module_name))
                 except:
                     site_model_callers._registry = before_import_registry

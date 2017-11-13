@@ -1,13 +1,12 @@
 from datetime import date
 
 from django.apps import apps as django_apps
-from django.contrib.admin.models import LogEntryManager
 from django.db import models
 from django.utils import timezone
 from django_crypto_fields.fields import EncryptedTextField, FirstnameField
 
-from edc_base.model.fields import OtherCharField
-from edc_base.model.validators import datetime_not_future, date_is_future
+from edc_base.model_validators import datetime_not_future, date_is_future
+from edc_base.model_fields import OtherCharField
 from edc_constants.choices import YES_NO, TIME_OF_DAY, TIME_OF_WEEK, ALIVE_DEAD_UNKNOWN
 from edc_constants.constants import YES, CLOSED, DEAD, NO, ALIVE
 from edc_protocol.validators import datetime_not_before_study_start
@@ -15,16 +14,16 @@ from edc_protocol.validators import datetime_not_before_study_start
 from .choices import (
     CONTACT_TYPE, APPT_GRADING, APPT_LOCATIONS, MAY_CALL, CALL_REASONS, APPT_REASONS_UNWILLING)
 from .constants import NEW_CALL, OPEN_CALL
-from .managers import CallManager, LogManager
+from .managers import CallManager, LogManager, LogEntryManager
 
 app_config = django_apps.get_app_config('edc_call_manager')
 
 
 class CallModelMixin(models.Model):
 
-    subject_identifier = models.CharField(max_length=25)
+    subject_identifier = models.CharField(max_length=50)
 
-    label = models.CharField(max_length=25)
+    label = models.CharField(max_length=50)
 
     scheduled = models.DateField(
         default=date.today)

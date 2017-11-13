@@ -30,6 +30,7 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
+APP_NAME = 'edc_call_manager'
 
 # Application definition
 
