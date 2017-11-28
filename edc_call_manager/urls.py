@@ -1,21 +1,18 @@
-# -*- coding: utf-8 -*-
-#
-# Copyright (C) 2015 Erik van Widenfelt
-# All rights reserved.
-#
-# This software is licensed as described in the file COPYING, which
-# you should have received as part of this distribution.
-#
-from django.conf.urls import include, url
 from django.contrib import admin
+from django.conf.urls import url
 
-from edc_base.utils import edc_base_startup
-from edc_call_manager.caller_site import site_model_callers
+from .views import HomeView, CallSubjectUpdateView, CallSubjectDeleteView, CallSubjectCreateView
 
-edc_base_startup()
-admin.autodiscover()
-site_model_callers.autodiscover()
 
 urlpatterns = [
-    url(r'^admin/', include(admin.site.urls)),
+    url(r'^admin/', admin.site.urls),
+    url(r'^(?P<caller_label>\w+)/(?P<log_pk>[\w]{8}-[\w]{4}-[\w]{4}-[\w]{4}-[\w]{12})/add/$',
+        CallSubjectCreateView.as_view(), name='call-subject-add'),
+    url(r'^callsubject/(?P<caller_label>\w+)/(?P<log_pk>[\w]{8}-[\w]{4}-[\w]{4}-[\w]{4}-[\w]{12})/'
+        '(?P<pk>[\w]{8}-[\w]{4}-[\w]{4}-[\w]{4}-[\w]{12})/change/',
+        CallSubjectUpdateView.as_view(), name='call-subject-change'),
+    url(r'^callsubject/(?P<caller_app_label>\w+)/(?P<caller_model_name>\w+)/'
+        '(?P<pk>[\w]{8}-[\w]{4}-[\w]{4}-[\w]{4}-[\w]{12})/delete/$',
+        CallSubjectDeleteView.as_view(), name='call-subject-delete'),
+    url(r'', HomeView.as_view(), name='home')
 ]

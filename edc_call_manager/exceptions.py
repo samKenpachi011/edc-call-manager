@@ -1,0 +1,4 @@
+
+
+class ModelCallerError(Exception):
+    pass
