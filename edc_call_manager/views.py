@@ -1,7 +1,7 @@
 import jsonpickle
 
 from django.apps import apps as django_apps
-from django.core.urlresolvers import reverse_lazy
+from django.urls.base import reverse_lazy
 from django.views.generic.base import TemplateView
 from django.views.generic.edit import UpdateView, DeleteView, CreateView
 

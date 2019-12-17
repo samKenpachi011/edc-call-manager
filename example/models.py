@@ -1,9 +1,7 @@
 from django.db import models
 from django.utils import timezone
-
-from edc_base.model.models import BaseUuidModel, HistoricalRecords
+from edc_base.model_mixins import BaseUuidModel
 from edc_call_manager.model_mixins import CallModelMixin, LogModelMixin, LogEntryModelMixin
-from edc_locator.model_mixins import LocatorModelMixin
 
 
 class TestModel(BaseUuidModel):
@@ -20,7 +18,7 @@ class TestModel(BaseUuidModel):
         app_label = 'example'
 
 
-class Locator(LocatorModelMixin, BaseUuidModel):
+class Locator(BaseUuidModel):
 
     class Meta:
         app_label = 'example'
@@ -58,19 +56,15 @@ class Call(CallModelMixin, BaseUuidModel):
 
     objects = models.Manager()
 
-    history = HistoricalRecords()
-
     class Meta(CallModelMixin.Meta):
         app_label = 'example'
 
 
 class Log(LogModelMixin, BaseUuidModel):
 
-    call = models.ForeignKey(Call)
+    call = models.ForeignKey(Call, on_delete=models.PROTECT)
 
     objects = models.Manager()
-
-    history = HistoricalRecords()
 
     class Meta(LogModelMixin.Meta):
         app_label = 'example'
@@ -78,11 +72,9 @@ class Log(LogModelMixin, BaseUuidModel):
 
 class LogEntry(LogEntryModelMixin, BaseUuidModel):
 
-    log = models.ForeignKey(Log)
+    log = models.ForeignKey(Log, on_delete=models.PROTECT)
 
     objects = models.Manager()
-
-    history = HistoricalRecords()
 
     class Meta(LogEntryModelMixin.Meta):
         app_label = 'example'

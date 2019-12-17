@@ -3,7 +3,7 @@ from itertools import chain
 from django.apps import apps as django_apps
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import MultipleObjectsReturned, ObjectDoesNotExist
-from django.core.urlresolvers import reverse
+from django.urls.base import reverse
 from django.utils.decorators import method_decorator
 
 from edc_base.utils import formatted_age
