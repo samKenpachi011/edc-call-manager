@@ -232,16 +232,22 @@ class ModelCaller:
 
     def get_locator(self, instance):
         """Returns the locator instance as a formatted string."""
-        locator = ''
+        locator_str = ''
         if self.locator_model:
             locator_filter = self.locator_filter or 'subject_identifier'
             options = {locator_filter: instance.subject_identifier}
             try:
                 locator = self.locator_model.objects.get(**options)
-                locator = locator.to_string()
             except self.locator_model.DoesNotExist:
-                locator = 'locator not found.'
-        return locator
+                locator_str = 'locator not found.'
+            else:
+                for fname in self.locator_model._meta.get_fields():
+                    value = getattr(locator, fname.name)
+                    if not type(value) == str:
+                        value = str(value)
+                    locator_str += value + ' '
+                locator_str = locator_str[:-1]
+        return locator_str
 
     def get_value(self, instance, attr):
         try:

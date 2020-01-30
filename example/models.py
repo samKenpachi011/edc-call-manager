@@ -2,6 +2,7 @@ from django.db import models
 from django.utils import timezone
 from edc_base.model_mixins import BaseUuidModel
 from edc_call_manager.model_mixins import CallModelMixin, LogModelMixin, LogEntryModelMixin
+from edc_locator.model_mixins import LocatorModelMixin
 
 
 class TestModel(BaseUuidModel):
@@ -18,7 +19,10 @@ class TestModel(BaseUuidModel):
         app_label = 'example'
 
 
-class Locator(BaseUuidModel):
+class Locator(LocatorModelMixin, BaseUuidModel):
+
+    subject_identifier = models.CharField(
+        max_length=25)
 
     class Meta:
         app_label = 'example'
@@ -39,6 +43,19 @@ class TestStartModel(BaseUuidModel):
 
 
 class TestStopModel(BaseUuidModel):
+
+    subject_identifier = models.CharField(
+        max_length=25)
+
+    report_datetime = models.DateField(
+        default=timezone.now)
+
+    objects = models.Manager()
+
+    class Meta:
+        app_label = 'example'
+
+class TestStopTwoModel(BaseUuidModel):
 
     subject_identifier = models.CharField(
         max_length=25)
