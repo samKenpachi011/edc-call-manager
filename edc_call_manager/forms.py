@@ -6,8 +6,7 @@ from edc_constants.constants import CLOSED, OTHER, YES
 
 from .admin import edc_call_manager_admin
 
-app_config = django_apps.get_app_config('edc_call_manager')
-LogEntry = django_apps.get_model(app_config.app_label, 'logentry')
+LogEntry = django_apps.get_model('edc_call_manager.logentry')
 
 
 class LogEntryForm(forms.ModelForm):

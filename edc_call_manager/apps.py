@@ -10,9 +10,8 @@ from edc_protocol.apps import AppConfig as BaseEdcProtocolAppConfig
 
 class AppConfig(DjangoAppConfig):
     name = 'edc_call_manager'
-    verbose_name = 'Call Manager'
-    app_label = 'edc_call_manager'  # app_label for models Call, Log, LogEntry if not default
-    namespace = 'edc-call-manager'
+    verbose_name = 'EDC Call Manager'
+    admin_site_name = 'edc_call_manager_admin'
 
     def ready(self):
         from edc_call_manager import signals

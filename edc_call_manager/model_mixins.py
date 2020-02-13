@@ -110,7 +110,6 @@ class LogModelMixin(models.Model):
 
     def natural_key(self):
         return (self.log_datetime, ) + self.call.natural_key()
-    natural_key.dependencies = ['{}.call'.format(app_config.app_label)]
 
     def __str__(self):
         return str(self.call)
@@ -231,7 +230,6 @@ class LogEntryModelMixin (models.Model):
 
     def natural_key(self):
         return (self.call_datetime, ) + self.log.natural_key()
-    natural_key.dependencies = ['{}.log'.format(app_config.app_label)]
 
     def save(self, *args, **kwargs):
         if self.survival_status == DEAD:
