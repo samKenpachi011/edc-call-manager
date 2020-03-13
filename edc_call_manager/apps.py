@@ -16,10 +16,10 @@ class AppConfig(DjangoAppConfig):
     def ready(self):
         from edc_call_manager import signals
         from edc_call_manager.caller_site import site_model_callers
-        sys.stdout.write('Loading {} ...\n'.format(self.verbose_name))
-        sys.stdout.write(' * call models are in app {}.\n'.format(self.app_label))
+        sys.stdout.write(f'Loading {self.verbose_name} ...\n')
+        sys.stdout.write(f' * call models are in app {self.name}.\n')
         site_model_callers.autodiscover()
-        sys.stdout.write(' Done loading {}.\n'.format(self.verbose_name))
+        sys.stdout.write(f' Done loading {self.verbose_name}.\n')
 
     @property
     def call_model(self):
