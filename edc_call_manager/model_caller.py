@@ -39,18 +39,16 @@ class ModelCaller:
         if self.stop_model:
             self.stop_model_name = stop_model._meta.label
         try:
-            self.call_model = django_apps.get_model(
-                app_config.app_label, 'call')
-            self.log_model = django_apps.get_model(app_config.app_label, 'log')
-            self.log_entry_model = django_apps.get_model(
-                app_config.app_label, 'logentry')
+            self.call_model = django_apps.get_model('edc_call_manager.call')
+            self.log_model = django_apps.get_model('edc_call_manager.log')
+            self.log_entry_model = django_apps.get_model('edc_call_manager.logentry')
         except LookupError as e:
             raise ModelCallerError('{} Try setting \'app_label\' to the app where the model is declared '
                                    'in AppConfig'.format(str(e), self.__class__.__name__))
         if not self.subject_model:
             try:
-                self.subject_model = django_apps.get_app_config('edc_registration').get_model(
-                    'RegisteredSubject')
+                self.subject_model = django_apps.get_model(
+                    'edc_registration.registeredsubject')
             except LookupError as e:
                 raise ModelCallerError(
                     'Cannot determine subject_model. Got {}'.format(str(e)))
