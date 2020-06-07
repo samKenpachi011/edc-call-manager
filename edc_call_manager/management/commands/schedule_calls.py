@@ -31,7 +31,7 @@ class Command(BaseCommand):
         for obj in model.objects.all():
             try:
                 model_caller.call_model.objects.get(
-                    potential_subject=obj, label=model_caller.label)
+                    subject_identifier=obj.subject_identifier, label=model_caller.label)
             except MultipleObjectsReturned:
                 pass
             except ObjectDoesNotExist:

@@ -16,9 +16,9 @@ from .forms import LogEntryForm
 
 
 app_config = django_apps.get_app_config('edc_call_manager')
-Call = django_apps.get_model(app_config.app_label, 'call')
-Log = django_apps.get_model(app_config.app_label, 'log')
-LogEntry = django_apps.get_model(app_config.app_label, 'logentry')
+Call = django_apps.get_model(app_config.label, 'call')
+Log = django_apps.get_model(app_config.label, 'log')
+LogEntry = django_apps.get_model(app_config.label, 'logentry')
 
 
 class CallSubjectViewMixin(EdcBaseViewMixin):

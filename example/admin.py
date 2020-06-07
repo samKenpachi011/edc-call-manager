@@ -38,7 +38,7 @@ class BaseModelAdmin(ModelAdminFormInstructionsMixin, ModelAdminFormAutoNumberMi
     date_hierarchy = 'modified'
     empty_value_display = '-'
 
-if app_config.app_label == 'edc_call_manager_example':
+if app_config.label == 'edc_call_manager_example':
 
     @admin.register(Call, site=edc_call_manager_admin)
     class CallAdmin(BaseModelAdmin, ModelAdminCallMixin, SimpleHistoryAdmin):

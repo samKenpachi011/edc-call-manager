@@ -1,6 +1,5 @@
 from datetime import date
 
-from django.apps import apps as django_apps
 from django.db import models
 from django.utils import timezone
 from django_crypto_fields.fields import EncryptedTextField, FirstnameField
@@ -15,8 +14,6 @@ from .choices import (
     CONTACT_TYPE, APPT_GRADING, APPT_LOCATIONS, MAY_CALL, CALL_REASONS, APPT_REASONS_UNWILLING)
 from .constants import NEW_CALL, OPEN_CALL
 from .managers import CallManager, LogManager, LogEntryManager
-
-app_config = django_apps.get_app_config('edc_call_manager')
 
 
 class CallModelMixin(models.Model):
