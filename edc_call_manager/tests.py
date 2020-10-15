@@ -15,10 +15,9 @@ from .caller_site import site_model_callers, AlreadyRegistered
 from .constants import OPEN_CALL, NEW_CALL
 from .model_caller import ModelCaller, WEEKLY
 
-app_config = django_apps.get_app_config('edc_call_manager')
-Call = django_apps.get_model(app_config.app_label, 'call')
-Log = django_apps.get_model(app_config.app_label, 'log')
-LogEntry = django_apps.get_model(app_config.app_label, 'logentry')
+Call = django_apps.get_model('edc_call_manager', 'call')
+Log = django_apps.get_model('edc_call_manager', 'log')
+LogEntry = django_apps.get_model('edc_call_manager', 'logentry')
 
 
 class TestModelCaller(ModelCaller):
