@@ -93,9 +93,12 @@ class ModelCaller:
 
         Used if the consent is not available."""
         subject = self.subject(instance.subject_identifier)
-        options = {'subject_identifier': subject.subject_identifier,
-                   'first_name': subject.first_name,
-                   'initials': subject.initials}
+        if subject:
+            options = {'subject_identifier': subject.subject_identifier,
+                       'first_name': subject.first_name,
+                       'initials': subject.initials}
+        else:
+            options = {'subject_identifier': instance.subject_identifier}
         return options
 
     def personal_details_from_consent(self, instance):
@@ -118,8 +121,11 @@ class ModelCaller:
         """Return an instance of the subject model."""
         subject = None
         if self.subject_model:
-            subject = self.subject_model.objects.get(
-                subject_identifier=subject_identifier)
+            try:
+                subject = self.subject_model.objects.get(
+                    subject_identifier=subject_identifier)
+            except self.subject_model.DoesNotExist:
+                pass
         return subject
 
     def consent(self, subject_identifier):
@@ -142,6 +148,7 @@ class ModelCaller:
         """Schedules a call by creating a new call instance and creates the corresponding Log instance.
 
         `instance` is a start_model instance"""
+        from pprint import pprint
         if self.consent_model:
             options = self.personal_details_from_consent(instance)
         else:

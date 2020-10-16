@@ -79,7 +79,7 @@ class Call(CallModelMixin, BaseUuidModel):
 
 class Log(LogModelMixin, BaseUuidModel):
 
-    call = models.ForeignKey(Call, on_delete=models.PROTECT)
+    call = models.ForeignKey(Call, on_delete=models.CASCADE)
 
     objects = models.Manager()
 
@@ -89,7 +89,7 @@ class Log(LogModelMixin, BaseUuidModel):
 
 class LogEntry(LogEntryModelMixin, BaseUuidModel):
 
-    log = models.ForeignKey(Log, on_delete=models.PROTECT)
+    log = models.ForeignKey(Log, on_delete=models.CASCADE)
 
     objects = models.Manager()
 

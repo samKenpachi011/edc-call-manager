@@ -200,7 +200,8 @@ class LogEntryModelMixin (models.Model):
         null=True,
         blank=True)
 
-    delivered = models.NullBooleanField(
+    delivered = models.BooleanField(
+        null=True,
         default=False,
         editable=False)
 
