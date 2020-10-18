@@ -2,17 +2,16 @@ from django.apps import apps as django_apps
 from django.contrib import admin
 from django.conf import settings
 
-from django.urls.exceptions import NoReverseMatch
-from django.urls.base import reverse
 from django_revision.modeladmin_mixin import ModelAdminRevisionMixin
-from edc_base.sites.admin import ModelAdminSiteMixin
-from edc_model_admin import ModelAdminBasicMixin, ModelAdminReadOnlyMixin
-from edc_model_admin import (
-    ModelAdminFormAutoNumberMixin, ModelAdminInstitutionMixin,
-    audit_fieldset_tuple, audit_fields, ModelAdminNextUrlRedirectMixin,
-    ModelAdminNextUrlRedirectError, ModelAdminReplaceLabelTextMixin)
+from edc_model_admin import ModelAdminBasicMixin
 
-from simple_history.admin import SimpleHistoryAdmin
+from edc_base.sites.admin import ModelAdminSiteMixin
+from edc_model_admin import (
+    ModelAdminNextUrlRedirectMixin, ModelAdminFormInstructionsMixin,
+    ModelAdminFormAutoNumberMixin, ModelAdminAuditFieldsMixin,
+    ModelAdminReadOnlyMixin, ModelAdminInstitutionMixin,
+    ModelAdminRedirectOnDeleteMixin)
+
 
 from .admin_site import edc_call_manager_admin
 from .constants import NEW_CALL, OPEN_CALL
@@ -21,28 +20,17 @@ from edc_model_admin.changelist_buttons import ModelAdminChangelistModelButtonMi
 
 
 
-class BaseModelAdminMixin(ModelAdminNextUrlRedirectMixin, ModelAdminFormAutoNumberMixin,
-                      ModelAdminRevisionMixin, ModelAdminReplaceLabelTextMixin,
-                      ModelAdminInstitutionMixin, ModelAdminReadOnlyMixin,):
+class ModelAdminMixin(ModelAdminNextUrlRedirectMixin,
+                      ModelAdminFormInstructionsMixin,
+                      ModelAdminFormAutoNumberMixin, ModelAdminRevisionMixin,
+                      ModelAdminAuditFieldsMixin, ModelAdminReadOnlyMixin,
+                      ModelAdminInstitutionMixin,
+                      ModelAdminRedirectOnDeleteMixin,
+                      ModelAdminSiteMixin):
 
     list_per_page = 10
     date_hierarchy = 'modified'
     empty_value_display = '-'
-
-    def redirect_url(self, request, obj, post_url_continue=None):
-        redirect_url = super().redirect_url(
-            request, obj, post_url_continue=post_url_continue)
-        if request.GET.dict().get('next'):
-            url_name = request.GET.dict().get('next').split(',')[0]
-            attrs = request.GET.dict().get('next').split(',')[1:]
-            options = {k: request.GET.dict().get(k)
-                       for k in attrs if request.GET.dict().get(k)}
-            try:
-                redirect_url = reverse(url_name, kwargs=options)
-            except NoReverseMatch as e:
-                raise ModelAdminNextUrlRedirectError(
-                    f'{e}. Got url_name={url_name}, kwargs={options}.')
-        return redirect_url
 
 
 class ModelAdminCallMixin(ModelAdminChangelistModelButtonMixin, ModelAdminBasicMixin):
@@ -85,7 +73,7 @@ class ModelAdminCallMixin(ModelAdminChangelistModelButtonMixin, ModelAdminBasicM
     mixin_search_fields = ('subject_identifier', 'initials', 'label')
 
     def call_button(self, obj):
-        Log = django_apps.get_model('edc_call_manager.log')
+        Log = django_apps.get_model('edc_call_manager', 'log')
         log = Log.objects.get(call=obj)
         args = (log.call.label, str(log.pk))
         if obj.call_status == NEW_CALL:
@@ -140,36 +128,6 @@ class ModelAdminLogEntryInlineMixin(object):
         "may_call": admin.VERTICAL,
     }
 
-
-class ModelAdminLogMixin(ModelAdminBasicMixin):
-
-    instructions = [
-        '<h5>Please read out to participant:</h5> "We hope you have been well since our visit last year. '
-        'As a member of this study, it is time for your revisit in which we will ask you '
-        'some questions and perform some tests."',
-        '<h5>Please read out to contact other than participant:</h5> (<B>IMPORTANT:</B> You may NOT disclose that the '
-        'participant is a member of the this study).<BR>"We would like to contact a participant '
-        '(give participant name) who gave us this number as a means to contact them. Do you know '
-        'how we can contact this person directly? This may be a phone number or a physical address.']
-
-    redirect_app_label = 'edc_call_manager'
-    redirect_model_name = 'call'
-    redirect_search_field = 'call__subject_identifier'
-    redirect_namespace = 'edc_call_manager_admin'
-
-    mixin_fields = ("call", 'locator_information', 'contact_notes')
-
-    readonly_fields = ('call', )
-
-    def formfield_for_foreignkey(self, db_field, request, **kwargs):
-        if db_field.name == "call":
-            Call = django_apps.get_model('edc_call_manager.call')
-            try:
-                call = Call.objects.get(pk=request.GET.get('call'))
-                kwargs["queryset"] = [call]
-            except Call.DoesNotExist:
-                pass
-        return super(ModelAdminLogMixin, self).formfield_for_foreignkey(db_field, request, **kwargs)
 
 
 class ModelAdminLogEntryMixin(object):
@@ -244,16 +202,14 @@ class ModelAdminLogEntryMixin(object):
             db_field, request, **kwargs)
 
 
-if settings.APP_NAME == 'edc_call_manager':
+@admin.register(Call, site=edc_call_manager_admin)
+class CallAdmin(ModelAdminMixin, ModelAdminCallMixin, admin.ModelAdmin):
+    pass
 
-    @admin.register(Call, site=edc_call_manager_admin)
-    class CallAdmin(BaseModelAdminMixin, ModelAdminCallMixin, SimpleHistoryAdmin):
-        pass
+@admin.register(Log, site=edc_call_manager_admin)
+class LogAdmin(ModelAdminMixin, admin.ModelAdmin):
+    pass
 
-    @admin.register(Log, site=edc_call_manager_admin)
-    class LogAdmin(BaseModelAdminMixin, ModelAdminLogMixin, SimpleHistoryAdmin):
-        pass
-
-    @admin.register(LogEntry, site=edc_call_manager_admin)
-    class LogEntryAdmin(BaseModelAdminMixin, ModelAdminLogEntryMixin, SimpleHistoryAdmin):
-        pass
+@admin.register(LogEntry, site=edc_call_manager_admin)
+class LogEntryAdmin(ModelAdminMixin, ModelAdminLogEntryMixin, admin.ModelAdmin):
+    pass

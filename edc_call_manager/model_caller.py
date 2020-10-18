@@ -148,7 +148,6 @@ class ModelCaller:
         """Schedules a call by creating a new call instance and creates the corresponding Log instance.
 
         `instance` is a start_model instance"""
-        from pprint import pprint
         if self.consent_model:
             options = self.personal_details_from_consent(instance)
         else:

@@ -1,4 +1,5 @@
 from django.urls.conf import re_path
+from django.views.generic.base import RedirectView
 
 from django.urls.conf import path
 
@@ -11,7 +12,8 @@ app_name = 'edc_call_manager'
 
 urlpatterns = [
     path('admin/', edc_call_manager_admin.urls),
-    path('', HomeView.as_view(), name='home_url'),
+    path('', RedirectView.as_view(url='admin/'), name='home_url'),
+#     path('', HomeView.as_view(), name='home_url'),
     
 #     re_path(r'^' + f'{app_name}/'
 #                     f'(?P<caller_label>\w+)/'
