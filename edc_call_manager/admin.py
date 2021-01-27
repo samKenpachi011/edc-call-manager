@@ -19,7 +19,6 @@ from .models import Call, Log, LogEntry
 from edc_model_admin.changelist_buttons import ModelAdminChangelistModelButtonMixin
 
 
-
 class ModelAdminMixin(ModelAdminNextUrlRedirectMixin,
                       ModelAdminFormInstructionsMixin,
                       ModelAdminFormAutoNumberMixin, ModelAdminRevisionMixin,
@@ -129,7 +128,6 @@ class ModelAdminLogEntryInlineMixin(object):
     }
 
 
-
 class ModelAdminLogEntryMixin(object):
 
     date_hierarchy = 'appt_date'
@@ -206,9 +204,11 @@ class ModelAdminLogEntryMixin(object):
 class CallAdmin(ModelAdminMixin, ModelAdminCallMixin, admin.ModelAdmin):
     pass
 
+
 @admin.register(Log, site=edc_call_manager_admin)
 class LogAdmin(ModelAdminMixin, admin.ModelAdmin):
     pass
+
 
 @admin.register(LogEntry, site=edc_call_manager_admin)
 class LogEntryAdmin(ModelAdminMixin, ModelAdminLogEntryMixin, admin.ModelAdmin):
