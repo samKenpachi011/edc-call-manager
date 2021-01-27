@@ -22,6 +22,9 @@ class ModelCaller:
     models is inspected in signals.
 
     """
+    call_model = None
+    log_model = None
+    log_entry_model = None
     consent_model = None
     interval = None
     label = None
@@ -39,9 +42,9 @@ class ModelCaller:
         if self.stop_model:
             self.stop_model_name = stop_model._meta.label
         try:
-            self.call_model = django_apps.get_model('edc_call_manager.call')
-            self.log_model = django_apps.get_model('edc_call_manager.log')
-            self.log_entry_model = django_apps.get_model('edc_call_manager.logentry')
+            self.call_model = self.call_model or django_apps.get_model('edc_call_manager.call')
+            self.log_model = self.log_model or django_apps.get_model('edc_call_manager.log')
+            self.log_entry_model = self.log_entry_model or django_apps.get_model('edc_call_manager.logentry')
         except LookupError as e:
             raise ModelCallerError('{} Try setting \'app_label\' to the app where the model is declared '
                                    'in AppConfig'.format(str(e), self.__class__.__name__))
