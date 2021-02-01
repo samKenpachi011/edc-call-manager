@@ -1,6 +1,5 @@
 from django.apps import apps as django_apps
 from django.contrib import admin
-from django.conf import settings
 
 from django_revision.modeladmin_mixin import ModelAdminRevisionMixin
 from edc_model_admin import ModelAdminBasicMixin

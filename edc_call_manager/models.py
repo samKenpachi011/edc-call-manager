@@ -15,7 +15,6 @@ class Log(LogModelMixin, BaseUuidModel):
 
     call = models.ForeignKey(Call, on_delete=models.PROTECT)
 
-
     class Meta(LogModelMixin.Meta):
         app_label = 'edc_call_manager'
 
