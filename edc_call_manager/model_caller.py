@@ -155,6 +155,7 @@ class ModelCaller:
             options = self.personal_details_from_consent(instance)
         else:
             options = self.personal_details_from_subject(instance)
+        scheduled = scheduled or getattr(instance, 'initial_call_date', None)
         call = self.call_model.objects.create(
             scheduled=scheduled or date.today(),
             label=self.label,
