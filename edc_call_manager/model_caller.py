@@ -8,7 +8,7 @@ from django.utils.text import slugify
 from edc_base.utils import get_utcnow
 from edc_constants.constants import CLOSED, YES, DEAD, NO
 
-from .constants import DAILY, WEEKLY, MONTHLY, YEARLY, OPEN_CALL, NEW_CALL
+from .constants import DAILY, WEEKLY, MONTHLY, QUARTELY, YEARLY, OPEN_CALL, NEW_CALL
 from .exceptions import ModelCallerError
 
 app_config = django_apps.get_app_config('edc_call_manager')
@@ -83,7 +83,7 @@ class ModelCaller:
             self.consent_model_name = self.consent_model._meta.label
         label = self.label or self.__class__.__name__
         self.label = slugify(str(label))
-        if self.interval not in [DAILY, WEEKLY, MONTHLY, YEARLY, None]:
+        if self.interval not in [DAILY, WEEKLY, MONTHLY, QUARTELY, YEARLY, None]:
             raise ValueError(
                 'ModelCaller expected an \'interval\' for a call scheduled to repeat. Got None.')
         self.repeats = False
@@ -155,6 +155,7 @@ class ModelCaller:
             options = self.personal_details_from_consent(instance)
         else:
             options = self.personal_details_from_subject(instance)
+        scheduled = scheduled or getattr(instance, 'initial_call_date', None)
         call = self.call_model.objects.create(
             scheduled=scheduled or date.today(),
             label=self.label,
@@ -195,6 +196,9 @@ class ModelCaller:
         elif self.interval == MONTHLY:
             scheduled_date = reference_date + \
                 relativedelta(months=+1, weekday=reference_date.weekday())
+        elif self.interval == QUARTELY:
+            scheduled_date = reference_date + \
+                relativedelta(months=+3, weekday=reference_date.weekday())
         else:
             pass
         return scheduled_date

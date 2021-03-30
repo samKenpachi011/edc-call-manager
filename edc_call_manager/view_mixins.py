@@ -132,7 +132,7 @@ class CallSubjectViewMixin(EdcBaseViewMixin):
     def get_contact_information(self):
         try:
             contact_information = self.locator_model.objects.get(
-                subject_identifier=self.log.call.subject_identifier).to_dict()
+                subject_identifier=self.log.call.subject_identifier).__dict__
         except self.locator_model.DoesNotExist:
             contact_information = None
         return contact_information
