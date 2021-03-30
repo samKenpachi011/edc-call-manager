@@ -160,6 +160,5 @@ STATICFILES_FINDERS = (
 
 
 GIT_DIR = BASE_DIR.ancestor(1)
-KEY_PATH = os.path.join(BASE_DIR.ancestor(1), 'crypto_fields')
 APP_CONFIG_NAME = 'edc_call_manager_example'
 CRISPY_TEMPLATE_PACK = 'bootstrap3'

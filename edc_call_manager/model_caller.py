@@ -22,6 +22,9 @@ class ModelCaller:
     models is inspected in signals.
 
     """
+    call_model = None
+    log_model = None
+    log_entry_model = None
     consent_model = None
     interval = None
     label = None
@@ -39,18 +42,16 @@ class ModelCaller:
         if self.stop_model:
             self.stop_model_name = stop_model._meta.label
         try:
-            self.call_model = django_apps.get_model(
-                app_config.app_label, 'call')
-            self.log_model = django_apps.get_model(app_config.app_label, 'log')
-            self.log_entry_model = django_apps.get_model(
-                app_config.app_label, 'logentry')
+            self.call_model = self.call_model or django_apps.get_model('edc_call_manager.call')
+            self.log_model = self.log_model or django_apps.get_model('edc_call_manager.log')
+            self.log_entry_model = self.log_entry_model or django_apps.get_model('edc_call_manager.logentry')
         except LookupError as e:
             raise ModelCallerError('{} Try setting \'app_label\' to the app where the model is declared '
                                    'in AppConfig'.format(str(e), self.__class__.__name__))
         if not self.subject_model:
             try:
-                self.subject_model = django_apps.get_app_config('edc_registration').get_model(
-                    'RegisteredSubject')
+                self.subject_model = django_apps.get_model(
+                    'edc_registration.registeredsubject')
             except LookupError as e:
                 raise ModelCallerError(
                     'Cannot determine subject_model. Got {}'.format(str(e)))
@@ -95,9 +96,12 @@ class ModelCaller:
 
         Used if the consent is not available."""
         subject = self.subject(instance.subject_identifier)
-        options = {'subject_identifier': subject.subject_identifier,
-                   'first_name': subject.first_name,
-                   'initials': subject.initials}
+        if subject:
+            options = {'subject_identifier': subject.subject_identifier,
+                       'first_name': subject.first_name,
+                       'initials': subject.initials}
+        else:
+            options = {'subject_identifier': instance.subject_identifier}
         return options
 
     def personal_details_from_consent(self, instance):
@@ -120,8 +124,11 @@ class ModelCaller:
         """Return an instance of the subject model."""
         subject = None
         if self.subject_model:
-            subject = self.subject_model.objects.get(
-                subject_identifier=subject_identifier)
+            try:
+                subject = self.subject_model.objects.get(
+                    subject_identifier=subject_identifier)
+            except self.subject_model.DoesNotExist:
+                pass
         return subject
 
     def consent(self, subject_identifier):
@@ -207,8 +214,9 @@ class ModelCaller:
             call.call_outcome = '. '.join(log_entry.outcome)
             call.call_datetime = log_entry.call_datetime
             call.call_attempts = log_entries.count()
-            if log_entry.may_call == NO or log_entry.survival_status == DEAD:
-                if log_entry.survival_status == DEAD:
+            survival_status = getattr(log_entry, 'survival_status', '')
+            if log_entry.may_call == NO or survival_status == DEAD:
+                if survival_status == DEAD:
                     call.call_outcome = 'Deceased. ' + \
                         (call.call_outcome or '')
                 call.call_status = CLOSED
@@ -232,16 +240,22 @@ class ModelCaller:
 
     def get_locator(self, instance):
         """Returns the locator instance as a formatted string."""
-        locator = ''
+        locator_str = ''
         if self.locator_model:
             locator_filter = self.locator_filter or 'subject_identifier'
             options = {locator_filter: instance.subject_identifier}
             try:
                 locator = self.locator_model.objects.get(**options)
-                locator = locator.to_string()
             except self.locator_model.DoesNotExist:
-                locator = 'locator not found.'
-        return locator
+                locator_str = 'locator not found.'
+            else:
+                for fname in self.locator_model._meta.get_fields():
+                    value = getattr(locator, fname.name)
+                    if not type(value) == str:
+                        value = str(value)
+                    locator_str += value + ' '
+                locator_str = locator_str[:-1]
+        return locator_str
 
     def get_value(self, instance, attr):
         try:

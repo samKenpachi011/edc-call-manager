@@ -3,7 +3,7 @@ from itertools import chain
 from django.apps import apps as django_apps
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import MultipleObjectsReturned, ObjectDoesNotExist
-from django.core.urlresolvers import reverse
+from django.urls.base import reverse
 from django.utils.decorators import method_decorator
 
 from edc_base.utils import formatted_age
@@ -16,9 +16,9 @@ from .forms import LogEntryForm
 
 
 app_config = django_apps.get_app_config('edc_call_manager')
-Call = django_apps.get_model(app_config.app_label, 'call')
-Log = django_apps.get_model(app_config.app_label, 'log')
-LogEntry = django_apps.get_model(app_config.app_label, 'logentry')
+Call = django_apps.get_model(app_config.label, 'call')
+Log = django_apps.get_model(app_config.label, 'log')
+LogEntry = django_apps.get_model(app_config.label, 'logentry')
 
 
 class CallSubjectViewMixin(EdcBaseViewMixin):

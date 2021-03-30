@@ -1,7 +1,7 @@
 import jsonpickle
 
 from django.apps import apps as django_apps
-from django.core.urlresolvers import reverse_lazy
+from django.urls.base import reverse_lazy
 from django.views.generic.base import TemplateView
 from django.views.generic.edit import UpdateView, DeleteView, CreateView
 
@@ -14,9 +14,9 @@ from .caller_site import site_model_callers
 from .view_mixins import CallSubjectViewMixin
 
 app_config = django_apps.get_app_config('edc_call_manager')
-Call = django_apps.get_model(app_config.app_label, 'call')
-Log = django_apps.get_model(app_config.app_label, 'log')
-LogEntry = django_apps.get_model(app_config.app_label, 'logentry')
+Call = django_apps.get_model(app_config.label, 'call')
+Log = django_apps.get_model(app_config.label, 'log')
+LogEntry = django_apps.get_model(app_config.label, 'logentry')
 
 
 class HomeView(EdcBaseViewMixin, EdcProtocolViewMixin, TemplateView):
@@ -28,7 +28,7 @@ class HomeView(EdcBaseViewMixin, EdcProtocolViewMixin, TemplateView):
         context.update({'model_callers': site_model_callers.model_callers.values()})
         if app_config.verbose_name not in context.get('project_name'):
             context.update({'project_name': context.get('project_name') + ': ' + app_config.verbose_name})
-        context.update({'app_label': app_config.app_label})
+        context.update({'app_label': app_config.label})
         context.update({'context': jsonpickle.encode(context)})
         return context
 

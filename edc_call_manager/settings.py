@@ -9,15 +9,20 @@ https://docs.djangoproject.com/en/1.9/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/1.9/ref/settings/
 """
-
 import os
 import sys
 
-from pathlib import Path
+from django.core.management.color import color_style
+
+# from .logging import LOGGING
+
+style = color_style()
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
-BASE_DIR = os.path.dirname(os.path.realpath(__file__))
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+ETC_DIR = '/Users/coulsonkgathi/etc'
 
+APP_NAME = 'edc_call_manager'
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.9/howto/deployment/checklist/
@@ -30,7 +35,16 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
-APP_NAME = 'edc_call_manager'
+
+SITE_ID = 10
+REVIEWER_SITE_ID = 11
+
+LOGIN_REDIRECT_URL = 'home_url'
+
+INDEX_PAGE = 'edc-call-manager.bhp.org.bw:8000'
+
+CONFIG_FILE = f'{APP_NAME}.conf'
+
 
 # Application definition
 
@@ -41,24 +55,17 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.sites',
     'django_js_reverse',
     'simple_history',
     'django_crypto_fields.apps.AppConfig',
     'django_revision.apps.AppConfig',
-    'edc_appointment.apps.AppConfig',
     'edc_base.apps.AppConfig',
     'edc_device.apps.AppConfig',
     'edc_identifier.apps.AppConfig',
-    'edc_locator.apps.AppConfig',
-    'edc_metadata.apps.AppConfig',
     'edc_registration.apps.AppConfig',
-    'edc_visit_schedule.apps.AppConfig',
-    'edc_visit_tracking.apps.AppConfig',
-    'edc_example.apps.EdcProtocolAppConfig',
-    'edc_example.apps.EdcTimepointAppConfig',
-    'edc_example.apps.EdcConsentAppConfig',
-    'edc_example.apps.AppConfig',
     'example.apps.AppConfig',
+    'edc_call_manager.apps.EdcProtocolAppConfig',
     'edc_call_manager.apps.AppConfig',
 ]
 
@@ -66,13 +73,12 @@ if 'test' in sys.argv:
     MIGRATION_MODULES = {"edc_call_manager": None,
                          "edc_call_manager_example": None}
 
-MIDDLEWARE_CLASSES = [
+MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
@@ -104,21 +110,9 @@ WSGI_APPLICATION = 'edc_call_manager.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': str(Path(BASE_DIR).parent.joinpath('db.sqlite3')),
+        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
     }
 }
-
-# ssh -f -N -L 10000:127.0.0.1:5432 bcpp@getresults.bhp.org.bw
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-#         'NAME': 'bcppi',
-#         'USER': 'postgres',
-#         'PASSWORD': 'postgres',
-#         'HOST': 'localhost',
-#         'PORT': '5432',  # 10000 if remote
-#     }
-# }
 
 # Password validation
 # https://docs.djangoproject.com/en/1.9/ref/settings/#auth-password-validators
@@ -138,6 +132,18 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+
+if 'test' in sys.argv and 'mysql' not in DATABASES.get('default').get('ENGINE'):
+    MIGRATION_MODULES = {
+        "django_crypto_fields": None,
+        "edc_call_manager": None,
+        "edc_identifier": None,
+        "example": None,
+        "edc_registration": None,}
+
+if 'test' in sys.argv:
+    PASSWORD_HASHERS = ('django_plainpasswordhasher.PlainPasswordHasher', )
+    DEFAULT_FILE_STORAGE = 'inmemorystorage.InMemoryStorage'
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.9/topics/i18n/
@@ -161,14 +167,3 @@ STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
-
-# List of finder classes that know how to find static files in
-# various locations.
-STATICFILES_FINDERS = (
-    'django.contrib.staticfiles.finders.FileSystemFinder',
-    'django.contrib.staticfiles.finders.AppDirectoriesFinder',
-    #    'django.contrib.staticfiles.finders.DefaultStorageFinder',
-)
-
-
-KEY_PATH = str(Path(BASE_DIR).parent.joinpath('crypto_fields'))

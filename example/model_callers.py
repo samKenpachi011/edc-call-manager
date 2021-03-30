@@ -2,7 +2,7 @@ from edc_call_manager.decorators import register
 from edc_call_manager.model_caller import ModelCaller
 from edc_registration.models import RegisteredSubject
 
-from .models import Locator, TestModel, TestStartModel, TestStopModel
+from .models import Locator, TestModel, TestStartModel, TestStopModel, TestStopTwoModel
 
 
 @register(TestStartModel, TestStopModel)
@@ -14,7 +14,7 @@ class TestModelCaller1(ModelCaller):
     subject_model = RegisteredSubject
 
 
-@register(TestModel, TestStopModel)
+@register(TestModel, TestStopTwoModel)
 class TestModelCaller2(ModelCaller):
     verbose_name = 'Subject follow-up for test model'
     label = 'TestModelCaller2'

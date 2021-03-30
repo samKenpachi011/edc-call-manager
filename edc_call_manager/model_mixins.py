@@ -1,6 +1,5 @@
 from datetime import date
 
-from django.apps import apps as django_apps
 from django.db import models
 from django.utils import timezone
 from django_crypto_fields.fields import EncryptedTextField, FirstnameField
@@ -15,8 +14,6 @@ from .choices import (
     CONTACT_TYPE, APPT_GRADING, APPT_LOCATIONS, MAY_CALL, CALL_REASONS, APPT_REASONS_UNWILLING)
 from .constants import NEW_CALL, OPEN_CALL
 from .managers import CallManager, LogManager, LogEntryManager
-
-app_config = django_apps.get_app_config('edc_call_manager')
 
 
 class CallModelMixin(models.Model):
@@ -110,7 +107,6 @@ class LogModelMixin(models.Model):
 
     def natural_key(self):
         return (self.log_datetime, ) + self.call.natural_key()
-    natural_key.dependencies = ['{}.call'.format(app_config.app_label)]
 
     def __str__(self):
         return str(self.call)
@@ -204,7 +200,8 @@ class LogEntryModelMixin (models.Model):
         null=True,
         blank=True)
 
-    delivered = models.NullBooleanField(
+    delivered = models.BooleanField(
+        null=True,
         default=False,
         editable=False)
 
@@ -231,7 +228,6 @@ class LogEntryModelMixin (models.Model):
 
     def natural_key(self):
         return (self.call_datetime, ) + self.log.natural_key()
-    natural_key.dependencies = ['{}.log'.format(app_config.app_label)]
 
     def save(self, *args, **kwargs):
         if self.survival_status == DEAD:

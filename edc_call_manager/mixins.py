@@ -16,7 +16,7 @@ class CallLogLocatorMixin(models.Model):
     def get_call_log_model(self):
         """If using the edc_call_manager, return the Log model so it can be updated."""
         try:
-            return django_apps.get_model(app_config.app_label, 'log')
+            return django_apps.get_model(app_config.label, 'log')
         except LookupError:
             return None
 
