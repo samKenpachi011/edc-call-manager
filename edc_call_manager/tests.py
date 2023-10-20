@@ -55,11 +55,12 @@ class TestCallManager(TestCase):
     def test_model_factory(self):
         return TestModel.objects.create(
             subject_identifier=self.subject_identifier)
- 
+
     def test_start_model_factory(self):
         return TestStartModel.objects.create(
             subject_identifier=self.subject_identifier)
-#   
+#
+
     def test_stop_model_factory(self):
         return TestStopModel.objects.create(
             subject_identifier=self.subject_identifier)
@@ -67,27 +68,29 @@ class TestCallManager(TestCase):
     def test_stop_two_model_factory(self):
         return TestStopTwoModel.objects.create(
             subject_identifier=self.subject_identifier)
-#  
+#
+
     def test_register(self):
         """Test if start models are registered.
         """
         self.assertIn(TestModel, site_model_callers.start_models)
         self.assertIn(TestStartModel, site_model_callers.start_models)
-  
+
     def test_register_duplicate(self):
         """Test if re-registering and already registered model throws an error.
         """
         class TestModelCaller2(ModelCaller):
             pass
         self.assertRaises(AlreadyRegistered, site_model_callers.register, TestModelCaller2, TestModel, TestStopModel)
- 
+
     def test_create_registered_model(self):
         """Testt iff a start model created a call instance.
         """
         TestModel.objects.create(
             subject_identifier=self.subject_identifier)
         self.assertEqual(Call.objects.filter(subject_identifier=self.subject_identifier).count(), 1)
-#  
+#
+
     def test_call_defaults(self):
         """Test that repeats set to default for a call.
         """
@@ -95,7 +98,7 @@ class TestCallManager(TestCase):
         call = Call.objects.get(subject_identifier=self.subject_identifier)
         self.assertEqual(call.label, 'testmodelcaller')
         self.assertFalse(call.repeats)
-  
+
     def test_repeating_caller_defaults(self):
         """Test that repeat is set to True for a call that repeats.
         """
@@ -103,13 +106,13 @@ class TestCallManager(TestCase):
         call = Call.objects.get(subject_identifier=self.subject_identifier)
         self.assertEqual(call.label, 'RepeatingTestModelCaller'.lower())
         self.assertTrue(call.repeats)
-  
+
     def test_unscheduling_ignores_if_no_scheduled(self):
         """Test if an unschedule model does nothing if a call was never scheduled.
         """
         self.test_stop_model_factory()
         self.assertRaises(Call.DoesNotExist, Call.objects.get, subject_identifier=self.subject_identifier)
-  
+
     def test_unscheduling_closes_if_scheduled(self):
         """Test that for a scheduled call, a stop model is able to close a call when created.
         """
@@ -135,7 +138,7 @@ class TestCallManager(TestCase):
                 subject_identifier=self.subject_identifier,
                 label='RepeatingTestModelCaller'.lower(),
                 call_status=CLOSED).count(), 1)
-  
+
     def test_locator_not_found_for_log(self):
         """Test that an missing locator iformation is set if does not exist for a log.
         """
@@ -147,7 +150,7 @@ class TestCallManager(TestCase):
             call_status=NEW_CALL)
         log = Log.objects.get(call=call)
         self.assertEqual(log.locator_information, 'locator not found.')
-  
+
     def test_locator_as_string_for_log(self):
         """Test that locator information is stttored as a string in a the log.
         """
@@ -166,7 +169,7 @@ class TestCallManager(TestCase):
             call_status=NEW_CALL)
         log = Log.objects.get(call=call)
         self.assertIn('723333333', log.locator_information)
-  
+
     def test_log_entry_outcome_call_again(self):
         """Test that a log entry update the call outcome for an alive participant.
         """
@@ -183,7 +186,7 @@ class TestCallManager(TestCase):
             survival_status=ALIVE)
         call = Call.objects.get(pk=call_pk)
         self.assertIn('Alive', call.call_outcome)
-  
+
     def test_log_entry_outcome_deceased(self):
         """Test that a log entry update the call outcome for a deceased participant.
         """
@@ -201,7 +204,7 @@ class TestCallManager(TestCase):
         call = Call.objects.get(pk=call_pk)
         self.assertEqual(call.call_status, CLOSED)
         self.assertIn('Deceased', call.call_outcome)
-  
+
     def test_call_attempts(self):
         """Test that attempts made for calls is updated after every call.
         """
@@ -233,7 +236,7 @@ class TestCallManager(TestCase):
         # created a new call after closing the previous
         self.assertEqual(Call.objects.filter(
             subject_identifier=subject_identifier, label=call.label).count(), 2)
-  
+
     def test_schedule_next_call(self):
         """Test if a next call is schedule once another is closed.
         """
@@ -263,7 +266,7 @@ class TestCallManager(TestCase):
             label=call_label,
             call_status=NEW_CALL).exclude(pk=call_pk)[0].scheduled
         self.assertGreater(scheduled, call.scheduled)
-  
+
     def test_call_serialize(self):
         """Test if the call object is serializeble.
         """
@@ -272,7 +275,7 @@ class TestCallManager(TestCase):
         json_object = serializers.serialize(
             'json', [call], use_natural_foreign_keys=True, use_natural_primary_keys=True)
         self.assertTrue(json.loads(json_object))
-  
+
     def test_log_serialize(self):
         """Test if the call log object is serializeble.
         """
@@ -286,7 +289,7 @@ class TestCallManager(TestCase):
         self.assertEqual(
             obj[0]['fields']['call'],
             [self.subject_identifier, TestModelCaller.label.lower(), date.today().strftime('%Y-%m-%d')])
-  
+
     def test_logentry_serialize(self):
         """Test if the call log entry object is serializeble.
         """

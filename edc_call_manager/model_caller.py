@@ -47,7 +47,7 @@ class ModelCaller:
             self.log_entry_model = self.log_entry_model or django_apps.get_model('edc_call_manager.logentry')
         except LookupError as e:
             raise ModelCallerError('{} Try setting \'app_label\' to the app where the model is declared '
-                                   'in AppConfig'.format(str(e), self.__class__.__name__))
+                                   'in AppConfig'.format(str(e)))
         if not self.subject_model:
             try:
                 self.subject_model = django_apps.get_model(
@@ -255,7 +255,7 @@ class ModelCaller:
             else:
                 for fname in self.locator_model._meta.get_fields():
                     value = getattr(locator, fname.name)
-                    if not type(value) == str:
+                    if not isinstance(value, str):
                         value = str(value)
                     locator_str += value + ' '
                 locator_str = locator_str[:-1]

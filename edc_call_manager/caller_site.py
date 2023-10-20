@@ -152,11 +152,12 @@ class CallerSite:
                     before_import_registry = copy.copy(
                         site_model_callers._registry)
                     import_module('{}.{}'.format(app, module_name))
-                except:
+                except Exception:
                     site_model_callers._registry = before_import_registry
                     if module_has_submodule(mod, module_name):
                         raise
             except ImportError:
                 pass
+
 
 site_model_callers = CallerSite()

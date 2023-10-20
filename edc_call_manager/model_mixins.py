@@ -78,7 +78,7 @@ class CallModelMixin(models.Model):
         return (self.subject_identifier, self.label, self.scheduled)
 
     def __str__(self):
-        return '{} {} ({}) {}'.format(
+        return '{} {} ({}) {} {}'.format(
             self.subject_identifier,
             self.first_name or '??',
             self.initials or '??',

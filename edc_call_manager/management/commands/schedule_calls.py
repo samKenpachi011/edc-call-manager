@@ -25,8 +25,7 @@ class Command(BaseCommand):
             raise CommandError('Unknown model caller for app_label.model_name. Got \'{}\''.format(
                 options['model_caller']))
         self.stdout.write(
-            self.style.SUCCESS('Found model_caller \'{}\' with call model \'{}\'.'.format(
-                model_caller.label, model_caller.call_model)))
+            self.style.SUCCESS(f'Found model_caller {model_caller.label} with call model {model_caller.call_model}'))
         new_calls = 0
         for obj in model.objects.all():
             try:
@@ -43,5 +42,5 @@ class Command(BaseCommand):
                     new_calls, model._meta.verbose_name)))
         else:
             self.stdout.write(
-                self.style.SUCCESS('No new calls scheduled. At least one call for each {} is already scheduled.'.format(
-                    new_calls, model._meta.verbose_name)))
+                self.style.SUCCESS('No new calls scheduled.'
+                                   f'At least one call for each {new_calls} is already scheduled'))

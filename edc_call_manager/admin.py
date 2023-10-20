@@ -75,9 +75,9 @@ class ModelAdminCallMixin(ModelAdminChangelistModelButtonMixin, ModelAdminBasicM
         log = Log.objects.get(call=obj)
         args = (log.call.label, str(log.pk))
         if obj.call_status == NEW_CALL:
-            change_label = 'New&nbsp;Call'.format(obj.call_attempts)
+            change_label = f'New&nbsp;Call {obj.call_attempts}'
         elif obj.call_status == OPEN_CALL:
-            change_label = 'Open&nbsp;Call'.format(obj.call_attempts)
+            change_label = f'Open&nbsp;Call {obj.call_attempts}'
         else:
             change_label = 'Closed&nbsp;Call'
         return self.change_button(

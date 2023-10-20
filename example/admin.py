@@ -6,7 +6,11 @@ from django.contrib.admin.decorators import register
 from simple_history.admin import SimpleHistoryAdmin
 
 from edc_base.modeladmin_mixins import ModelAdminFormInstructionsMixin, ModelAdminFormAutoNumberMixin
-from edc_call_manager.admin import edc_call_manager_admin, ModelAdminCallMixin, ModelAdminLogMixin, ModelAdminLogEntryMixin
+from edc_call_manager.admin import (
+    ModelAdminMixin,
+    edc_call_manager_admin,
+    ModelAdminCallMixin,
+    ModelAdminLogEntryMixin)
 
 from .models import (TestModel, TestStartModel, TestStopModel, Locator, Call, Log, LogEntry)
 
@@ -38,6 +42,7 @@ class BaseModelAdmin(ModelAdminFormInstructionsMixin, ModelAdminFormAutoNumberMi
     date_hierarchy = 'modified'
     empty_value_display = '-'
 
+
 if app_config.label == 'edc_call_manager_example':
 
     @admin.register(Call, site=edc_call_manager_admin)
@@ -45,7 +50,7 @@ if app_config.label == 'edc_call_manager_example':
         pass
 
     @admin.register(Log, site=edc_call_manager_admin)
-    class LogAdmin(BaseModelAdmin, ModelAdminLogMixin, SimpleHistoryAdmin):
+    class LogAdmin(BaseModelAdmin, ModelAdminMixin, SimpleHistoryAdmin):
         pass
 
     @admin.register(LogEntry, site=edc_call_manager_admin)

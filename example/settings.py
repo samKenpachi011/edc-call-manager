@@ -160,5 +160,5 @@ STATICFILES_FINDERS = (
 
 
 GIT_DIR = BASE_DIR.ancestor(1)
-APP_CONFIG_NAME = 'edc_call_manager_example'
+APP_CONFIG_NAME = "edc_call_manager_example"
 CRISPY_TEMPLATE_PACK = 'bootstrap3'

@@ -139,7 +139,7 @@ if 'test' in sys.argv and 'mysql' not in DATABASES.get('default').get('ENGINE'):
         "edc_call_manager": None,
         "edc_identifier": None,
         "example": None,
-        "edc_registration": None,}
+        "edc_registration": None, }
 
 if 'test' in sys.argv:
     PASSWORD_HASHERS = ('django_plainpasswordhasher.PlainPasswordHasher', )

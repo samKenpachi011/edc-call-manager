@@ -20,4 +20,6 @@ def call_participant(modeladmin, request, queryset):
         return HttpResponseRedirect(change_url)
     else:
         messages.add_message(request, WARNING, 'Please select only one subject to call at a time.')
+
+
 call_participant.short_description = "Call participant"

@@ -1,3 +1,15 @@
+
+[![Build Status](https://app.travis-ci.com/samKenpachi011/edc-call-manager.svg?branch=develop)](https://app.travis-ci.com/samKenpachi011/edc-call-manager)
+
+
+[![Coverage Status](https://coveralls.io/repos/github/samKenpachi011/edc-call-manager/badge.svg?branch=develop)](https://coveralls.io/github/samKenpachi011/edc-call-manager?branch=develop)
+
+[![Language](https://img.shields.io/badge/Language-Python-blue.svg)](https://www.python.org/)
+[![License](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Version](https://img.shields.io/badge/Version-1.0.0-blue.svg)](https://github.com/samKenpachi011/edc-call-manager/releases/tag/v1.0.0)
+[![Log Scan Status](https://img.shields.io/badge/Log%20Scan-Passing-brightgreen.svg)](https://app.travis-ci.com/github/samKenpachi011/edc-call-manager/logscans)
+
+
 # edc-call-manager
 
 Configure models to manage scheduling calls to subjects.
@@ -32,26 +44,26 @@ When the mother delivers we complete the `PostNatalEnrollment` model and this ca
 Here is an example `ModelCaller` start model:
 
 	class AnteNatalEnrollment(models.Model):
-	
+
 	    subject_identifier = models.CharField(
 	        max_length=25)
-	
+
 	    subject_date = models.DateField(
 	        default=datetime.now())
-	
+
 	    class Meta:
 	        app_label = 'my_app'
 
 ... and stop model:
 
 	class PostNatalEnrollment(models.Model):
-	
+
 	    subject_identifier = models.CharField(
 	        max_length=25)
-	
+
 	    subject_date = models.DateField(
 	        default=datetime.now())
-	
+
 	    class Meta:
 	        app_label = 'my_app'
 
@@ -100,6 +112,3 @@ TODO: a management command may be run daily to inspect calls relative to the rep
 ## Appointment Caller
 
 TODO: The `AppointmentCaller` schedules calls X-days before the appointment date and unschedules the call once the visit report is complete.
-
-
-
